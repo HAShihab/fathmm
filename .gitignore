@@ -1,1 +1,7 @@
+# Database Configuration
 *.ini
+
+# Server Submission(s)
+*.txt
+*.htm
+*.tab

@@ -39,7 +39,7 @@ if __name__ == '__main__':
             # perform our analysis/predictions in the background ...
             pid = subprocess.Popen([ sys.executable, 'fathmm.py', '-i', '../tmp/' + HTMLSession + '.txt', '-w', str(HTMLForm['weighted'].value), '-p', str(HTMLForm['phenotypes'].value), '-H' ], stdout=subprocess.PIPE, stderr=subprocess.PIPE, stdin=subprocess.PIPE)
         else:
-            HTMLSession = str(HTMLForm['session'].value)
+            HTMLSession = str(HTMLForm['session'].value).strip()
         
         print """
 <!DOCTYPE html>
