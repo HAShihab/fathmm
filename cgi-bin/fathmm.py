@@ -212,12 +212,22 @@ def process_record(dbSNP, protein, substitution):
     Web = None
 
     if not options.weights.upper() == "UNWEIGHTED":
-        Tag = "TOLERATED"
-        Web = "<p class='text-success'>TOLERATED</p>"
+        if options.weights.upper() == "INHERITED":
+            # "Inherited Disease" predictions ...
+            Tag = "TOLERATED"
+            Web = "<p class='text-success'>TOLERATED</p>"
         
-        if float(Score) < -1.50:
-            Tag = "DAMAGING"
-            Web = "<p class='text-error'>DAMAGING</p>"    
+            if float(Score) < -1.50:
+                Tag = "DAMAGING"
+                Web = "<p class='text-error'>DAMAGING</p>"    
+        else:
+            # "Cancer-Associated" predictions ...
+            Tag = "OTHER/PASSENGER"
+            Web = "<p class='text-success'>OTHER/PASSENGER</p>"
+        
+            if float(Score) < -0.50:
+                Tag = "CANCER"
+                Web = "<p class='text-error'>CANCER</p>"    
     else:
         Tag = "TOLERATED"
         Web = "<p class='text-success'>TOLERATED</p>"

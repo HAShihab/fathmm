@@ -127,7 +127,10 @@ if __name__ == '__main__':
             <div class="hero-unit">
                 <h2>fathmm Predictions</h2>
                 <p>
-                    your request (Job/Session ID """ + HTMLSession + """)  is now being processed - if you submitted a large batch; please be patient as this may take a while.
+                    your request is now being processed and our predictions will be written to your screen every five seconds - if you submitted a large batch; please be patient as this may take a while.
+                    <br />
+                    <br />
+                    Job/Session ID: """ + HTMLSession + """
                 </p>
                 <p>
                     <a href="#" class="btn btn-warning disabled btn-large pull-right" id="info" name="info">Processing Request ...</a>
