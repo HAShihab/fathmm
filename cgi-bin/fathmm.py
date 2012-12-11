@@ -8,7 +8,7 @@ import ConfigParser
 import MySQLdb
 import MySQLdb.cursors
 
-from optparse import OptionParser, SUPPRESS_HELP
+from optparse import OptionParser, SUPPRESS_HELP, OptionGroup
 
 #
 def map_position(domain, substitution):
@@ -290,6 +290,12 @@ if __name__ == '__main__':
                       action  = "store_true",
                       default = False
                       ) # web-based parameter - hidden from program user(s)
+    
+    
+    group = OptionGroup(parser, "Dangerous Options", "Caution: use these options \n\nat your own risk.  It is believed that some of them bite.")
+    
+    parser.add_option_group(group)
+    
     
     (options, args) = parser.parse_args()
     
