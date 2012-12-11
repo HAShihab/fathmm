@@ -1,0 +1,10 @@
+#	dbSNP ID	Protein ID	Substitution	Prediction	Score	Domain-Phenotype Association	Warning
+1	rs137854462	ENSP00000325527	N548I	DAMAGING	-9.49	Osteoarthritis|Dilatation Of The Ascending Aorta|Abnormality Of The Aorta	
+2	rs28936683	ENSP00000363489	L441P	DAMAGING	-5.06	Multifactorial Inheritance|Aplasia/Hypoplasia Of The Middle Phalanges Of The Toes|Abnormality Of The Middle Phalanges Of The Toes|Aplasia/Hypoplasia Of The Phalanges Of The Toes	
+3	rs121908258	ENSP00000307297	Y293C	DAMAGING	-8.15		
+4	rs17132395	ENSP00000258711	R109S	TOLERATED	-2.08		
+5	rs121912297	ENSP00000358563	T66A	TOLERATED	-1.81		
+6	-	P43026	L441P	DAMAGING	-5.06	Multifactorial Inheritance|Aplasia/Hypoplasia Of The Middle Phalanges Of The Toes|Abnormality Of The Middle Phalanges Of The Toes|Aplasia/Hypoplasia Of The Phalanges Of The Toes	
+7	-	P35555	N548I	DAMAGING	-9.49	Osteoarthritis|Dilatation Of The Ascending Aorta|Abnormality Of The Aorta	
+8	-	P35555	E1073K	DAMAGING	-7.69	Osteoarthritis|Dilatation Of The Ascending Aorta|Abnormality Of The Aorta	
+9	-	P35555	C2307S	DAMAGING	-8.94	Osteoarthritis|Dilatation Of The Ascending Aorta|Abnormality Of The Aorta	

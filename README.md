@@ -13,9 +13,9 @@ You will need the following packages installed on your system:
 
 ## Setup:
 
-* our pre-computed database, including instructions on how to create/upload the 
+* Our pre-computed database, including instructions on how to create/upload the 
 database, can be found at ftp://supfam2.cs.bris.ac.uk/FATHMM/database
-* create a configuration file named "config.ini" and enter the following (substituting 
+* Create a configuration file named "config.ini" and enter the following (substituting 
 the required information with your credentials):
 
 ```
@@ -27,7 +27,7 @@ PASSWD = [MySQL Password]
 DB     = fathmm
 ```
 
-* download "fathmm.py" from ./cgi-bin
+* Download "fathmm.py" from ./cgi-bin
 
 ## Running our Software
 
@@ -38,6 +38,21 @@ on disease-associations when a mutation falls within a SUPERFAMILY domain.
 
 ```
 python fathmm.py -i <INPUT> -o <OUTPUT>
+```
+
+A combination of the below is accepted/valid input:
+
+* Human dbSNP rs IDs (dbSNP 137) - multiple SNPs should be entered on separate lines.
+* Human SwissProt/TrEMBL and/or Ensembl protein identifiers followed by the amino acid substitution in the conventional one letter format - multiple substitutions can be entered on a single line and should be separated by a comma.
+
+```
+rs137854462
+rs28936683
+rs121908258
+rs17132395
+rs121912297
+P43026 L441P
+P35555 N548I,E1073K,C2307S 
 ```
 
 The --help parameter can be used to view additional program parameters.  In brief,
@@ -59,6 +74,7 @@ An optional parameter which controls the phenotype ontology used in our software
 
 ```
 DO : Disease Ontology [this is the default]
+GO : Gene Ontology
 HP : Human Phenotype Ontology
 MP : Mouse Phenotype Ontology
 WP : Worm Phenotype Ontology
@@ -71,5 +87,8 @@ KW : UniProtKB KeyWords
 ```
 
 ## Known Issues:
+
+* Our predictions appear to be derived/written slower than previous version(s) of our 
+software - we are looking into this issue and will provide an update as soon as possible.
 
 We welcome any comments and/or suggestions that you may have regarding our software and server - please send an email directly to fathmm@biocompute.org.uk
