@@ -17,12 +17,14 @@ You will need the following packages installed on your system:
 * our pre-computed database, including instructions on how to create/upload the database, can be found at ftp://supfam2.cs.bris.ac.uk/FATHMM/database
 * create a configuration file named "config.ini" and enter the following (substituting the required information with your credentials):
 
-	[DATABASE]
-	HOST    = [MySQL Host]
-	PORT    = [MySQL Port]
-	USER    = [MySQL Username]
-	PASSWD  = [MySQL Password]
-	DB      = fathmm
+```
+[DATABASE]
+HOST    = [MySQL Host]
+PORT    = [MySQL Port]
+USER    = [MySQL Username]
+PASSWD  = [MySQL Password]
+DB      = fathmm
+```
 
 ### Software
 
