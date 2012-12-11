@@ -34,8 +34,7 @@ DB     = fathmm
 In it's simplest form, our software parses dbSNP rs IDs and protein missense 
 mutations from \<INPUT> and returns a list of predictions weighted for 
 inherited-disease mutations (Human) in \<OUTPUT>.  Furthermore, we return predictions
-on disease-associations when a mutation falls within a SUPERFAMILY domain.  Our p
-redictions are written into the same directory
+on disease-associations when a mutation falls within a SUPERFAMILY domain.
 
 ```
 python fathmm.py -i <INPUT> -o <OUTPUT>
