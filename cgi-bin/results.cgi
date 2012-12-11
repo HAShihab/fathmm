@@ -16,6 +16,7 @@ if __name__ == '__main__':
         print "Content-Type: text/html"
         print
         
+        # if new submission, perform our analysis/predictions in the background ...
         HTMLForm    = cgi.FieldStorage()
         HTMLTime    = time.gmtime()
         HTMLSession = None
@@ -29,133 +30,155 @@ if __name__ == '__main__':
                     break
             
             # write the submission (& server parameters) to the server
-            for x in [ "# Remote Address: " + str(os.environ['REMOTE_ADDR']) + "\n",
-                       "# Server Date: " + time.strftime("%d-%m-%Y", HTMLTime) + "\n",
-                       "# Server Date: " + time.strftime("%H:%M:%S", HTMLTime) + "\n",
+            for x in [ "# IP: " + str(os.environ['REMOTE_ADDR']) + "\n",
+                       "# Date: " + time.strftime("%d-%m-%Y", HTMLTime) + "\n",
+                       "# Time: " + time.strftime("%H:%M:%S", HTMLTime) + "\n",
+                       "# Weights: " + str(HTMLForm['weighted'].value).upper() + "\n",
+                       "# Phenotypes: " + str(HTMLForm['phenotypes'].value).upper() + "\n",
                        str(HTMLForm['batch'].value)
                      ]:
                 open("../tmp/" + HTMLSession + ".txt", "a").write(x)
-            
-            # perform our analysis/predictions in the background ...
-            pid = subprocess.Popen([ sys.executable, 'fathmm.py', '-i', '../tmp/' + HTMLSession + '.txt', '-w', str(HTMLForm['weighted'].value), '-p', str(HTMLForm['phenotypes'].value), '-H' ], stdout=subprocess.PIPE, stderr=subprocess.PIPE, stdin=subprocess.PIPE)
+
+            pid = subprocess.Popen([ sys.executable,
+                                     'fathmm.py',
+                                     '-i', '../tmp/' + HTMLSession + '.txt',
+                                     '-o', '../tmp/' + HTMLSession + '.tab',
+                                     '-w', str(HTMLForm['weighted'].value),
+                                     '-p', str(HTMLForm['phenotypes'].value),
+                                     '--HTML' 
+                                   ], stdout=subprocess.PIPE, stderr=subprocess.PIPE, stdin=subprocess.PIPE)
+        #
         else:
+            # fetch predictions from previous session
             HTMLSession = str(HTMLForm['session'].value).strip()
+            
         
-        print """
-<!DOCTYPE html>
-<!--[if lt IE 7]> <html class="lt-ie9 lt-ie8 lt-ie7"> <![endif]-->
-<!--[if IE 7]>    <html class="lt-ie9 lt-ie8"> <![endif]-->
-<!--[if IE 8]>    <html class="lt-ie9"> <![endif]-->
-<!--[if gt IE 8]><!--> <html class=""> <!--<![endif]-->
-    <head>
-        <title>fathmm - Inherited Mutation Analysis</title>
+        
+        if os.path.exists("../tmp/" + HTMLSession + ".txt"):
+            print """
+    <!DOCTYPE html>
+    <!--[if lt IE 7]> <html class="lt-ie9 lt-ie8 lt-ie7"> <![endif]-->
+    <!--[if IE 7]>    <html class="lt-ie9 lt-ie8"> <![endif]-->
+    <!--[if IE 8]>    <html class="lt-ie9"> <![endif]-->
+    <!--[if gt IE 8]><!--> <html class=""> <!--<![endif]-->
+        <head>
+            <title>fathmm - Inherited Mutation Analysis</title>
 
-        <meta charset="utf-8">
-        
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <meta name="description" content="Predict the Functional and Phenotypic Consequences of Protein Missense Variants">
-        <meta name="keywords" content="Functional Analysis, Protein Missense Variants, Amino Acid Substitutions, Hidden Markov Models, HMMs, Single Nucleotide Polymorphisms, SNPs, Non Synonymous Mutation, nsSNPs, FATHMM">
-        <meta name="author" content="Hashem A. Shihab">
-        
-        <meta http-equiv="cache-control" content="max-age=0" />
-        <meta http-equiv="cache-control" content="no-cache" />
-        <meta http-equiv="expires" content="0" />
-        <meta http-equiv="expires" content="Tue, 01 Jan 1980 1:00:00 GMT" />
-        <meta http-equiv="pragma" content="no-cache" />
-        
-        <!-- HTML5 "Upscaling" -->
-        <!--[if lt IE 9]>
-            <script src="http://html5shiv.googlecode.com/svn/trunk/html5.js"></script>
-        <![endif]-->
+            <meta charset="utf-8">
+            
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <meta name="description" content="Predict the Functional and Phenotypic Consequences of Protein Missense Variants">
+            <meta name="keywords" content="Functional Analysis, Protein Missense Variants, Amino Acid Substitutions, Hidden Markov Models, HMMs, Single Nucleotide Polymorphisms, SNPs, Non Synonymous Mutation, nsSNPs, FATHMM">
+            <meta name="author" content="Hashem A. Shihab">
+            
+            <meta http-equiv="cache-control" content="max-age=0" />
+            <meta http-equiv="cache-control" content="no-cache" />
+            <meta http-equiv="expires" content="0" />
+            <meta http-equiv="expires" content="Tue, 01 Jan 1980 1:00:00 GMT" />
+            <meta http-equiv="pragma" content="no-cache" />
+            
+            <!-- HTML5 "Upscaling" -->
+            <!--[if lt IE 9]>
+                <script src="http://html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+            <![endif]-->
 
-        <link href="../css/bootstrap.css" rel="stylesheet">
-        <link href="../css/bootstrap-responsive.css" rel="stylesheet">
-        <link href="../css/fathmm.css" rel="stylesheet" type="text/css">
-        
-        <script type="text/javascript" src="../js/bootstrap.min.js"></script>
-        <script type="text/javascript" src="../js/jquery.min.js"></script>
-        
-        <!-- AJAX Predictions -->
-        <script type="text/javascript">
-            var Refresh;
-            var Container;
+            <link href="../css/bootstrap.css" rel="stylesheet">
+            <link href="../css/bootstrap-responsive.css" rel="stylesheet">
+            <link href="../css/fathmm.css" rel="stylesheet" type="text/css">
+            
+            <script type="text/javascript" src="../js/bootstrap.min.js"></script>
+            <script type="text/javascript" src="../js/jquery.min.js"></script>
+            
+            <!-- AJAX Predictions -->
+            <script type="text/javascript">
+                var Refresh;
+                var Container;
 
-            $(document).ready(function()
-            {
-                Container = $("#Predictions");
-                Refresh   = setInterval(
-                    function()
-                    {
-                        Container.load('../tmp/""" + HTMLSession + """.htm');
-                    }, 5000);
-            });
-        </script>
-    </head>
+                $(document).ready(function()
+                {
+                    Container = $("#Predictions");
+                    Container.load('../tmp/""" + HTMLSession + """.htm');
+                    
+                    Refresh   = setInterval(
+                        function()
+                        {
+                            Container.load('../tmp/""" + HTMLSession + """.htm');
+                        }, 5000);
+                });
+            </script>
+        </head>
 
-    <body>
-        <div class="container">
-            <div class="navbar navbar-fixed-top">
-                <div class="navbar-inner">
-                    <div class="container">
-                        <a class="btn btn-navbar" data-toggle="collapse" data-target=".nav-collapse">
-                            <span class="icon-bar"></span>
-                            <span class="icon-bar"></span>
-                            <span class="icon-bar"></span>
-                        </a>
-                        <a class="brand" href="#">fathmm</a>
-                        <div class="nav-collapse collapse">
-                            <ul class="nav">
-                                <li><a href="../index.html">Home</a></li>
-                                <li><a href="https://github.com/HAShihab/fathmm">Download</a></li>
-                                <li class="dropdown">
-                                    <a href="#" class="dropdown-toggle" data-toggle="dropdown">New Submission <b class="caret"></b></a>
-                                    <ul class="dropdown-menu">
-                                        <li><a href="../inherited.html">Analyze dbSNP/Protein Variants</a></li>
-                                        <li><a href="../cancer.html">Analyze Cancer-Associated Variants</a></li>
-                                    </ul>
-                                </li>
-                            </ul>
-                            <form class="navbar-form pull-right" action="./results.cgi" method="post" enctype="multipart/form-data">
-                                <input class="span3" type="text" id="session" name="session" placeholder="Enter Your Job/Session Identifier">
-                                <button type="submit" class="btn">Fetch Results</button>
-                            </form>
-                        </div><!--/.nav-collapse -->
+        <body>
+            <div class="container">
+                <div class="navbar navbar-fixed-top">
+                    <div class="navbar-inner">
+                        <div class="container">
+                            <a class="btn btn-navbar" data-toggle="collapse" data-target=".nav-collapse">
+                                <span class="icon-bar"></span>
+                                <span class="icon-bar"></span>
+                                <span class="icon-bar"></span>
+                            </a>
+                            <a class="brand" href="#">fathmm</a>
+                            <div class="nav-collapse collapse">
+                                <ul class="nav">
+                                    <li><a href="../index.html">Home</a></li>
+                                    <li><a href="https://github.com/HAShihab/fathmm">Download</a></li>
+                                    <li class="dropdown">
+                                        <a href="#" class="dropdown-toggle" data-toggle="dropdown">New Submission <b class="caret"></b></a>
+                                        <ul class="dropdown-menu">
+                                            <li><a href="../inherited.html">Analyze dbSNP/Protein Variants</a></li>
+                                            <li><a href="../cancer.html">Analyze Cancer-Associated Variants</a></li>
+                                        </ul>
+                                    </li>
+                                </ul>
+                                <form class="navbar-form pull-right" action="./results.cgi" method="post" enctype="multipart/form-data">
+                                    <input class="span3" type="text" id="session" name="session" placeholder="Enter Your Job/Session Identifier">
+                                    <button type="submit" class="btn">Fetch Results</button>
+                                </form>
+                            </div><!--/.nav-collapse -->
+                        </div>
                     </div>
                 </div>
-            </div>
-            
-            <div class="hero-unit">
-                <h2>fathmm Predictions</h2>
-                <p>
-                    your request is now being processed and our predictions will be written to your screen every five seconds - if you submitted a large batch; please be patient as this may take a while.
-                    <br />
-                    <br />
-                    Job/Session ID: """ + HTMLSession + """
-                </p>
-                <p>
-                    <a href="#" class="btn btn-warning disabled btn-large pull-right" id="info" name="info">Processing Request ...</a>
-                </p>
-            </div>
-            
-            <div class="row">
-                <div class="span12">
-                    <div id="Predictions"></div>
+                
+                <div class="hero-unit">
+                    <h2>fathmm Predictions</h2>
+                    <p>
+                        Your request is now being processed and our predictions will be written to your screen once completed - if you submitted a large batch; 
+                        please be patient as this may take a while.&nbsp;&nbsp;Alternatively, please note your Job/Session ID below to retrieve your results at
+                        a later time.
+                        <br />
+                        <br />
+                        Job/Session ID: """ + HTMLSession + """
+                    </p>
+                    <p>
+                        <a href="../tmp/""" + HTMLSession + """.tab" class="btn btn-warning disabled btn-large pull-right" id="info" name="info">Processing Request ...</a>
+                    </p>
                 </div>
+                
+                <div class="row">
+                    <div class="span12">
+                        <div id="Predictions"></div>
+                    </div>
+                </div>
+                        
+                <hr>
+                <footer>
+                <p>
+                We welcome any comments and/or suggestions that you may have regarding our software and server - please send an email directly to fathmm@biocompute.org.uk
+                </p>
+                </footer>
             </div>
-                    
-            <hr>
-            <footer>
-            <p>
-            We welcome any comments and/or suggestions that you may have regarding our software and server - please send an email directly to fathmm@biocompute.org.uk
-            </p>
-            </footer>
-        </div>
-    
-        <script type="text/javascript" src="../js/bootstrap.min.js"></script>
-        <script type="text/javascript" src="../js/jquery.min.js"></script>
-    </body>
-</html>
-        """
+        
+            <script type="text/javascript" src="../js/bootstrap.min.js"></script>
+            <script type="text/javascript" src="../js/jquery.min.js"></script>
+        </body>
+    </html>
+            """
+        else:
+            
+            print "Unknown Session"
+            
+            
     #
     except Exception, e:
         print "Content-Type: text/html"

@@ -44,7 +44,7 @@ def map_position(domain, substitution):
 def process_record(dbSNP, protein, substitution):
     
     #
-    # fetch pre-computed sequence record
+    # FETCH PRE-COMPUTED SEQUENCE RECORD
     #
     
     dbCursor.execute("select a.* from Clusters a, Protein b where a.id=b.cluster and b.name='" + protein + "'")
@@ -52,25 +52,12 @@ def process_record(dbSNP, protein, substitution):
     
     if not SeqRecord:
         # no pre-computed sequence record ...
-        if HTM:
-            HTM.write(
-"""
-                    <tr>
-                        <td>""" + str(idx) + """</td>
-                        <td>""" + str(dbSNP) + """</td>
-                        <td>""" + str(protein) + """</td>
-                        <td>""" + str(substitution) + """</td>
-                        <td colspan="2">&nbsp;</td>
-                        <td>No Sequence Record Found</td>
-                    </tr>
-"""
-            )
-        TAB.write(
+        Predictions.write(
             "\t".join([ str(idx), dbSNP, protein, substitution, "", "", "", "No Sequence Record Found" ]) + "\n"
         ); return False
     
     #
-    # authenticate protein/substitution
+    # AUTHENTICATE PROTEIN/SUBSTITUTION
     #
     
     _         = None
@@ -84,28 +71,15 @@ def process_record(dbSNP, protein, substitution):
     if not _ and substitution[0] == substitution[-1]:
         _     = "Synonymous Mutation"
     if  _:
-        if HTM:
-            HTM.write(
-"""
-                    <tr>
-                        <td>""" + str(idx) + """</td>
-                        <td>""" + str(dbSNP) + """</td>
-                        <td>""" + str(protein) + """</td>
-                        <td>""" + str(substitution) + """</td>
-                        <td colspan="2">&nbsp;</td>
-                        <td>""" + _ + """</td>
-                    </tr>
-"""
-                )
-            TAB.write(
-                "\t".join([ str(idx), dbSNP, protein, substitution, "", "", "", _ ]) + "\n"
-            ); return False
+        Predictions.write(
+            "\t".join([ str(idx), dbSNP, protein, substitution, "", "", "", _ ]) + "\n"
+        ); return False
     
     #
-    # create a facade of possible prediction(s)
+    # CREATE A FACADE OF POSSIBLE PREDICTION(S)
     #
     
-    facade    = []
+    Facade    = []
     
     # fetch substitution-harbouring protein domains ...
     dbCursor.execute("select * from Domains where id='" + SeqRecord['id'] + "' and " + substitution[1:-1] + " between seq_start and seq_end order by evalue")
@@ -121,41 +95,28 @@ def process_record(dbSNP, protein, substitution):
             dbRecord = dbCursor.fetchone()
             
             if dbRecord:
-                facade.append(dbRecord)
+                Facade.append(dbRecord)
     
     # ... append JackHMMER probabilities
     dbCursor.execute("select a.*, b.accession, b.description from Probabilities a, Library b where a.id=b.id and a.id='" + SeqRecord['id'] + "' and a.position='" + substitution[1:-1] + "'")
     ConRecord = dbCursor.fetchone()
     if ConRecord:
-        facade.append(ConRecord)
+        Facade.append(ConRecord)
     
-    if not facade:
+    if not Facade:
         # no domain assignments/JackHMMER conservation
-        if HTM:
-            HTM.write(
-"""
-                    <tr>
-                        <td>""" + str(idx) + """</td>
-                        <td>""" + str(dbSNP) + """</td>
-                        <td>""" + str(protein) + """</td>
-                        <td>""" + str(substitution) + """</td>
-                        <td colspan="2">&nbsp;</td>
-                        <td>No Prediction Available</td>
-                    </tr>
-"""
-            )
-        TAB.write(
+        Predictions.write(
             "\t".join([ str(idx), dbSNP, protein, substitution, "", "", "", "No Prediction Available" ]) + "\n"
         ); return False
     
     #
-    # derive a prediction using the most informative HMM within the facade
+    # DERIVE A PREDICTION USING THE MOST INFORMATIVE HMM WITHIN THE FACADE
     #
     
     Score      = None
     Phenotypes = None
     
-    for x in sorted(facade, key=lambda x:x['information'], reverse=True):
+    for x in sorted(Facade, key=lambda x:x['information'], reverse=True):
         if not Score:
             if options.weights.upper() == "UNWEIGHTED":
                 # "Unweighted Prediction" ...
@@ -186,71 +147,37 @@ def process_record(dbSNP, protein, substitution):
             break
     
     #
-    # write our prediction
+    # WRITE OUR PREDICTION
     #
     
     if not Score:
         # no pathogenicity weights/prediction score
-        if HTM:
-            HTM.write(
-"""
-                    <tr>
-                        <td>""" + str(idx) + """</td>
-                        <td>""" + str(dbSNP) + """</td>
-                        <td>""" + str(protein) + """</td>
-                        <td>""" + str(substitution) + """</td>
-                        <td colspan="2">&nbsp;</td>
-                        <td>No Prediction Available</td>
-                    </tr>
-"""
-            )
-        TAB.write(
+        Predictions.write(
             "\t".join([ str(idx), dbSNP, protein, substitution, "", "", "", "No Prediction Available" ]) + "\n"
         ); return False
     
     Tag = None
-    Web = None
 
     if not options.weights.upper() == "UNWEIGHTED":
         if options.weights.upper() == "INHERITED":
             # "Inherited Disease" predictions ...
             Tag = "TOLERATED"
-            Web = "<p class='text-success'>TOLERATED</p>"
-        
+            
             if float(Score) < -1.50:
-                Tag = "DAMAGING"
-                Web = "<p class='text-error'>DAMAGING</p>"    
+                Tag = "DAMAGING" 
         else:
             # "Cancer-Associated" predictions ...
-            Tag = "OTHER/PASSENGER"
-            Web = "<p class='text-success'>OTHER/PASSENGER</p>"
+            Tag = "NON-CANCER/PASSENGER"
         
             if float(Score) < -0.50:
-                Tag = "CANCER"
-                Web = "<p class='text-error'>CANCER</p>"    
+                Tag = "CANCER" 
     else:
         Tag = "TOLERATED"
-        Web = "<p class='text-success'>TOLERATED</p>"
         
         if float(Score) < -3.00:
             Tag = "DAMAGING"
-            Web = "<p class='text-error'>DAMAGING</p>"
-        
-    if HTM:
-        HTM.write(
-"""
-                    <tr>
-                        <td>""" + str(idx) + """</td>
-                        <td>""" + str(dbSNP) + """</td>
-                        <td>""" + str(protein) + """</td>
-                        <td>""" + str(substitution) + """</td>
-                        <td>""" + str(Web) + """</td>
-                        <td>""" + str(Score) + """</td>
-                        <td><ul>""" + "".join([ "<li>" + x['description'] + "</li>" for x in Phenotypes ]) + """</ul></td>
-                    </tr>
-"""
-        )
-    TAB.write(
+    
+    Predictions.write(
         "\t".join([ str(idx), dbSNP, protein, substitution, Tag, Score, "|".join([ x['description'] for x in Phenotypes ]), "" ]) + "\n"
     ); return True
             
@@ -258,7 +185,7 @@ def process_record(dbSNP, protein, substitution):
 if __name__ == '__main__':
     
     #
-    # parse program arguments
+    # PARSE PROGRAM ARGUMENTS
     #
     
     parser = OptionParser()
@@ -291,17 +218,17 @@ if __name__ == '__main__':
                       default = "DO"
                       )
     parser.add_option(
-                      "-H",
-                      dest    = "HTM",
-                      help    = SUPPRESS_HELP,
-                      action  = "store_true",
+                      "--HTML",
+                      dest = "HTML",
+                      help = SUPPRESS_HELP,
+                      action = "store_true",
                       default = False
-                      ) # web-based parameter - hidden from program user(s)
-    
+                      ) # web-based parameter used to write HTML predictions - hidden from program user(s)
+
     (options, args) = parser.parse_args()
     
     #
-    # authenticate program parameters
+    # AUTHENTICATE PROGRAM PARAMETERS
     #
     
     if not options.input:
@@ -314,7 +241,7 @@ if __name__ == '__main__':
         parser.error("Invalid Weighting Scheme")
     
     #
-    # initialize database connection/cursor
+    # INITIALIZE DATABASE CONNECTION/CURSOR
     #
     
     Config = ConfigParser.ConfigParser()
@@ -331,32 +258,19 @@ if __name__ == '__main__':
             ).cursor(MySQLdb.cursors.DictCursor)
     
     #
-    # process mutation(s)
+    # PROCESS MUTATION(S)
     #
     
-    TAB = open(options.output, "w")
-    TAB.write("\t".join([ "#", "dbSNP ID", "Protein ID", "Substitution", "Prediction", "Score", "Domain-Phenotype Association", "Warning" ]) + "\n")
-    
-    HTM = None
-    if options.HTM:
-        HTM = open(os.path.splitext(options.input)[0] + ".htm", "w")
-        HTM.write(
-"""
-            <table class="table table-striped">
-                <thead>
-                    <tr>
-                        <th>#</th>
-                        <th>dbSNP ID</th>
-                        <th>Protein ID</th>
-                        <th>Substitution</th>
-                        <th>Prediction</th>
-                        <th>Score</th>
-                        <th>Further Information</th>
-                    </tr>
-                </thead>
-                <tbody>
-"""
-        )
+    Predictions = open("/tmp/" + os.path.basename(os.path.splitext(options.input)[0]) + ".tmp", "w")
+    Predictions.write("\t".join([ "#", 
+                                  "dbSNP ID",
+                                  "Protein ID",
+                                  "Substitution",
+                                  "Prediction",
+                                  "Score",
+                                  "Domain-Phenotype Association",
+                                  "Warning"
+                                ]) + "\n")
     
     idx = 0
     for record in open(options.input, "r"):
@@ -374,64 +288,105 @@ if __name__ == '__main__':
                         # no dbSNP mapping
                         idx += 1
                         
-                        if HTM:
-                            HTM.write(
-"""
-                    <tr>
-                        <td>""" + str(idx) + """</td>
-                        <td colspan="5">""" + record + """</td>
-                        <td>No dbSNP Mapping(s) For Record</td>
-                    </tr>
-"""
-                            )
-                        TAB.write(
+                        Predictions.write(
                             "\t".join([ str(idx), record, "", "", "", "", "", "No dbSNP Mapping(s) For Record" ]) + "\n"
                         ); continue
                     
                     # process dbSNP/protein consequence(s) ...
                     for x in dbRecords:
-                        idx += 1; process_record(x['id'], x['protein'], x['substitution'])
+                        idx += 1
+                        
+                        process_record(x['id'], x['protein'], x['substitution'])
                 else:
                     # parse protein/substitution(s) ...
                     Protein       = record.upper().split()[0]
                     Substitutions = record.upper().split()[1].split(",")
                         
                     for x in Substitutions:
-                        idx += 1; process_record("-", Protein, x)
+                        idx += 1
+                        
+                        process_record("-", Protein, x)
             #
             except Exception, e:
-                # report the exception
                 idx += 1
                 
-                TAB.write(
+                Predictions.write(
                     "\t".join([ str(idx), "", "", "", "", "", "", "An Error Occured While Parsing The Record: " + record ]) + "\n"
                 )
-                if HTM:
-                    HTM.write(
-"""
-                    <tr>
-                        <td>""" + str(idx) + """</td>
-                        <td colspan="5">&nbsp;</td>
-                        <td>An Error Occured While Parsing: """ + record + """</td>
-                    </tr>
-"""
-                    )
             #
         #
     #
     
-    if HTM:
-        # finish web-based function(s) ...
+    Predictions.close()
+    
+    # move predictions to the requested location
+    os.system("mv /tmp/" + os.path.basename(os.path.splitext(options.input)[0]) + ".tmp " + options.output)
+    
+    # 
+    # WRITE WEB-BASED PREDICTIONS (IF REQUESTED)
+    #
+    
+    if options.HTML:
+        HTM = open(os.path.splitext(options.output)[0] + ".htm", "w")
         HTM.write(
 """
-                </tbody>
-            </table>
-            
-            <script>
-                document.getElementById("info").setAttribute("class", "btn btn-primary btn-large pull-right");
-                document.getElementById("info").innerHTML = "Download Predictions &raquo;";
-                document.getElementById("info").href = "../tmp/""" + os.path.basename(os.path.splitext(options.input)[0]) + """.tab";
-                clearInterval(Refresh);
-            </script>
+<table class="table table-striped">
+    <thead>
+        <tr>
+            <th>#</th>
+            <th>dbSNP ID</th>
+            <th>Protein ID</th>
+            <th>Substitution</th>
+            <th>Prediction</th>
+            <th>Score</th>
+            <th>Further Information</th>
+        </tr>
+    </thead>
+    <tbody>
+"""
+        )
+        
+        for record in open(options.output, "r"):
+            if record and not record.startswith("#"):
+                record = record.split("\t")
+                
+                # prediction formatting
+                if record[4] in [ "DAMAGING", "CANCER" ]:
+                    record[4] = "<p class='text-error'>%s</p>"% record[4]
+                else:
+                    record[4] = "<p class='text-success'>%s</p>"% record[4]
+                
+                # warning/phenotypes formatting
+                if record[7].strip():
+                    record[6] = record[7]
+                else:
+                    if record[6].strip():
+                        record[6] = "<ul>" + "".join([ "<li>" + x + "</li>" for x in record[6].split("|") ]) + "</ul>"
+                        
+                HTM.write(
+"""
+        <tr>
+            <td>""" + record[0] + """</td>
+            <td>""" + record[1] + """</td>
+            <td>""" + record[2] + """</td>
+            <td>""" + record[3] + """</td>
+            <td>""" + record[4] + """</td>
+            <td>""" + record[5] + """</td>
+            <td>""" + record[6] + """</td>
+        </tr>
+"""
+        )
+        
+        HTM.write(
+"""
+    </tbody>
+</table>
+
+<script>
+    document.getElementById("info").setAttribute("class", "btn btn-primary btn-large pull-right");
+    document.getElementById("info").innerHTML = "Download Predictions &raquo;";
+    
+    clearInterval(Refresh);
+</script>
 """
         )

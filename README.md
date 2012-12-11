@@ -33,21 +33,20 @@ DB     = fathmm
 
 In it's simplest form, our software parses dbSNP rs IDs and protein missense 
 mutations from \<INPUT> and returns a list of predictions weighted for 
-inherited-disease mutations (Human) in [OUTPUT].  Furthermore, we return predictions
+inherited-disease mutations (Human) in \<OUTPUT>.  Furthermore, we return predictions
 on disease-associations when a mutation falls within a SUPERFAMILY domain.  Our p
 redictions are written into the same directory
 
 ```
-python fathmm.py -i <INPUT> -o <OUTPUT> <OPTIONS>
+python fathmm.py -i <INPUT> -o <OUTPUT>
 ```
 
-The --help parameter can be used to view expected program parameters.  In brief,
-there are two optional parameters which control the prediction algorithm and
-disease-associations reported:
+The --help parameter can be used to view additional program parameters.  In brief,
+there are two optional parameters:
 
 * -w [?]
 
-This parameter controls the prediction algorithm used in our software:
+An optional parameter which controls the prediction algorithm used in our software:
 
 ```
 Inherited  : return predictions weighted for human inherited-disease mutations [this is the default]
@@ -57,7 +56,7 @@ Cancer     : return predictions weighted specifically for Human cancer
 
 * -p [?]
 
-This parameter controls which phenotype ontology to use:
+An optional parameter which controls the phenotype ontology used in our software:
 
 ```
 DO : Disease Ontology [this is the default]
