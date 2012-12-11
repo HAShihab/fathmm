@@ -8,7 +8,7 @@ import ConfigParser
 import MySQLdb
 import MySQLdb.cursors
 
-from optparse import OptionParser, SUPPRESS_HELP, OptionGroup
+from optparse import OptionParser, SUPPRESS_HELP
 
 #
 def map_position(domain, substitution):
@@ -264,9 +264,16 @@ if __name__ == '__main__':
     parser = OptionParser()
     parser.add_option(
                       "-i",
-                      dest    = "batch",
-                      help    = "process dbSNP rs IDs/protein missense mutations from <FILE>", 
-                      metavar = "<FILE>",
+                      dest    = "input",
+                      help    = "process dbSNP rs IDs/protein missense mutations from <INPUT>", 
+                      metavar = "<INPUT>",
+                      default = None
+                      )
+    parser.add_option(
+                      "-o",
+                      dest    = "output",
+                      help    = "write predictions/phenotype-associations to <OUTPUT>", 
+                      metavar = "<OUTPUT>",
                       default = None
                       )
     parser.add_option(
@@ -291,20 +298,17 @@ if __name__ == '__main__':
                       default = False
                       ) # web-based parameter - hidden from program user(s)
     
-    
-    group = OptionGroup(parser, "Dangerous Options", "Caution: use these options \n\nat your own risk.  It is believed that some of them bite.")
-    
-    parser.add_option_group(group)
-    
-    
     (options, args) = parser.parse_args()
     
     #
     # authenticate program parameters
     #
     
-    if not options.batch:
-        parser.error("No Mutation Data Given")
+    if not options.input:
+        parser.error("No Input File Given (-i parameter)")
+    
+    if not options.output:
+        parser.error("No Output File Given (-o parameter)")
         
     if not options.weights.upper() in [ "UNWEIGHTED", "INHERITED", "CANCER" ]:
         parser.error("Invalid Weighting Scheme")
@@ -330,12 +334,12 @@ if __name__ == '__main__':
     # process mutation(s)
     #
     
-    TAB = open(os.path.splitext(options.batch)[0] + ".tab", "w")
+    TAB = open(options.output, "w")
     TAB.write("\t".join([ "#", "dbSNP ID", "Protein ID", "Substitution", "Prediction", "Score", "Domain-Phenotype Association", "Warning" ]) + "\n")
     
     HTM = None
     if options.HTM:
-        HTM = open(os.path.splitext(options.batch)[0] + ".htm", "w")
+        HTM = open(os.path.splitext(options.input)[0] + ".htm", "w")
         HTM.write(
 """
             <table class="table table-striped">
@@ -355,7 +359,7 @@ if __name__ == '__main__':
         )
     
     idx = 0
-    for record in open(options.batch, "r"):
+    for record in open(options.input, "r"):
         if record and not record.startswith("#"):
             record    = record.strip()
             
@@ -426,9 +430,8 @@ if __name__ == '__main__':
             <script>
                 document.getElementById("info").setAttribute("class", "btn btn-primary btn-large pull-right");
                 document.getElementById("info").innerHTML = "Download Predictions &raquo;";
-                document.getElementById("info").href = "../tmp/""" + os.path.basename(os.path.splitext(options.batch)[0]) + """.tab";
+                document.getElementById("info").href = "../tmp/""" + os.path.basename(os.path.splitext(options.input)[0]) + """.tab";
                 clearInterval(Refresh);
             </script>
 """
-
         )

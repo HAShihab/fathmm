@@ -2,7 +2,7 @@ fathmm
 ======
 
 This is the source code for the Functional Analysis through Hidden Markov Models 
-(fathmm) software and server.
+software and server (http://fathmm.biocompute.org.uk).
 
 ## General Requirements
 
@@ -32,12 +32,13 @@ DB     = fathmm
 ## Running our Software
 
 In it's simplest form, our software parses dbSNP rs IDs and protein missense 
-mutations from <file> and returns a list of predictions weighted for 
-inherited-disease mutations (Human).  Furthermore, we return predictions
-on disease-associations when a mutation falls within a SUPERFAMILY domain.
+mutations from \<INPUT> and returns a list of predictions weighted for 
+inherited-disease mutations (Human) in [OUTPUT].  Furthermore, we return predictions
+on disease-associations when a mutation falls within a SUPERFAMILY domain.  Our p
+redictions are written into the same directory
 
 ```
-python fathmm.py <FILE> <OPTIONS>
+python fathmm.py -i <INPUT> -o <OUTPUT> <OPTIONS>
 ```
 
 The --help parameter can be used to view expected program parameters.  In brief,
@@ -59,7 +60,7 @@ Cancer     : return predictions weighted specifically for Human cancer
 This parameter controls which phenotype ontology to use:
 
 ```
-DO : Disease Ontology
+DO : Disease Ontology [this is the default]
 HP : Human Phenotype Ontology
 MP : Mouse Phenotype Ontology
 WP : Worm Phenotype Ontology
