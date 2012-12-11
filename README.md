@@ -15,16 +15,16 @@ You will need the following packages installed on your system:
 
 * our pre-computed database, including instructions on how to create/upload the 
 database, can be found at ftp://supfam2.cs.bris.ac.uk/FATHMM/database
-* create a configuration file named "config.ini" and enter the following (
-substituting the required information with your credentials):
+* create a configuration file named "config.ini" and enter the following (substituting 
+the required information with your credentials):
 
 ```
 [DATABASE]
-HOST    = [MySQL Host]
-PORT    = [MySQL Port]
-USER    = [MySQL Username]
-PASSWD  = [MySQL Password]
-DB      = fathmm
+HOST   = [MySQL Host]
+PORT   = [MySQL Port]
+USER   = [MySQL Username]
+PASSWD = [MySQL Password]
+DB     = fathmm
 ```
 
 * download "fathmm.py" from ./cgi-bin
@@ -37,16 +37,16 @@ inherited-disease mutations (Human).  Furthermore, we return predictions
 on disease-associations when a mutation falls within a SUPERFAMILY domain.
 
 ```
-python fathmm.py <FILE>
+python fathmm.py <FILE> <OPTIONS>
 ```
 
 The --help parameter can be used to view expected program parameters.  In brief,
 there are two optional parameters which control the prediction algorithm and
 disease-associations reported:
 
-* -w <WEIGHTS>
+* -w [?]
 
-This parameter controls the prediction algorithm used in our software
+This parameter controls the prediction algorithm used in our software:
 
 ```
 Inherited  : return predictions weighted for human inherited-disease mutations [this is the default]
@@ -54,9 +54,9 @@ Unweighted : return unweighted (species-independant) predictions
 Cancer     : return predictions weighted specifically for Human cancer
 ```
 
-* -p <PHENO>
+* -p [?]
 
-This parameter controls which phenotype ontology to use
+This parameter controls which phenotype ontology to use:
 
 ```
 DO : Disease Ontology
