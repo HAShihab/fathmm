@@ -49,12 +49,9 @@ disease-associations reported:
 This parameter controls the prediction algorithm used in our software
 
 ```
-Inherited  : return predictions weighted for human inherited-disease 
-mutations (this is the default)
-Unweighted : return unweighted (species-independant) predictions 
-Cancer     : return predictions weighted for Human cancer - use this option 
-when you wish to distinguish between cancer-associated/driver mutations and other 
-disease-associated/passenger mutations
+* Inherited  : return predictions weighted for human inherited-disease mutations [this is the default]
+* Unweighted : return unweighted (species-independant) predictions 
+* Cancer     : return predictions weighted specifically for Human cancer
 ```
 
 * -p <PHENO>
