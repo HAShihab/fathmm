@@ -1,7 +1,8 @@
 fathmm
 ======
 
-This is the source code for the Functional Analysis through Hidden Markov Models (fathmm) software and server.
+This is the source code for the Functional Analysis through Hidden Markov Models 
+(fathmm) software and server.
 
 ## General Requirements
 
@@ -12,10 +13,10 @@ You will need the following packages installed on your system:
 
 ## Setup:
 
-### Database
-
-* our pre-computed database, including instructions on how to create/upload the database, can be found at ftp://supfam2.cs.bris.ac.uk/FATHMM/database
-* create a configuration file named "config.ini" and enter the following (substituting the required information with your credentials):
+* our pre-computed database, including instructions on how to create/upload the 
+database, can be found at ftp://supfam2.cs.bris.ac.uk/FATHMM/database
+* create a configuration file named "config.ini" and enter the following (
+substituting the required information with your credentials):
 
 ```
 [DATABASE]
@@ -26,9 +27,52 @@ PASSWD  = [MySQL Password]
 DB      = fathmm
 ```
 
-### Software
+* download "fathmm.py" from ./cgi-bin
 
-* download ./cgi-bin/fathmm.py (the --help parameter can be used to view expected program parameters)
+## Running our Software
+
+In it's simplest form, our software parses dbSNP rs IDs and protein missense 
+mutations from <file> and returns a list of predictions weighted for 
+inherited-disease mutations (Human).  Furthermore, we return predictions
+on disease-associations when a mutation falls within a SUPERFAMILY domain.
+
+```
+python fathmm.py <FILE>
+```
+
+The --help parameter can be used to view expected program parameters.  In brief,
+there are two optional parameters which control the prediction algorithm and
+disease-associations reported:
+
+* -w <WEIGHTS>
+
+This parameter controls the prediction algorithm used in our software
+
+```
+Inherited  : return predictions weighted for human inherited-disease 
+mutations (this is the default)
+Unweighted : return unweighted (species-independant) predictions 
+Cancer     : return predictions weighted for Human cancer - use this option 
+when you wish to distinguish between cancer-associated/driver mutations and other 
+disease-associated/passenger mutations
+```
+
+* -p <PHENO>
+
+This parameter controls which phenotype ontology to use
+
+```
+DO : Disease Ontology
+HP : Human Phenotype Ontology
+MP : Mouse Phenotype Ontology
+WP : Worm Phenotype Ontology
+YP : Yeast Phenotype Ontology
+FP : Fly Phenotype Ontology
+FA : Fly Anatomy Ontology
+ZA : Zebrafish Anatomy Ontology
+AP : Arabidopsis Plant Ontology
+KW : UniProtKB KeyWords
+```
 
 ## Known Issues:
 

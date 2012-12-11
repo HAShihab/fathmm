@@ -281,7 +281,7 @@ if __name__ == '__main__':
                       dest    = "phenotypes",
                       help    = "append domain-phenotype associations for mutations using phenotype ontology <PHENO>", 
                       metavar = "<PHENO>",
-                      default = "None"
+                      default = "DO"
                       )
     parser.add_option(
                       "-H",
