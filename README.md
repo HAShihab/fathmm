@@ -15,9 +15,18 @@ You will need the following packages installed on your system:
 
 * Our pre-computed database, including instructions on how to create/upload the 
 database, can be found at ftp://supfam2.cs.bris.ac.uk/FATHMM/database
-* Download "fathmm.py" and "config.ini" from the ./cgi-bin folder
-* Amend "config.ini", substituting the required information with your MySQL
-credentials:
+* Create a configuration file named "config.ini" and enter the following (substituting 
+the required information with your MySQL credentials):
+
+```
+[DATABASE]
+HOST   = [MySQL Host]
+PORT   = [MySQL Port]
+USER   = [MySQL Username]
+PASSWD = [MySQL Password]
+DB     = fathmm
+```
+* Download "fathmm.py" from the ./cgi-bin folder
 
 ## Running our Software
 
