@@ -15,19 +15,9 @@ You will need the following packages installed on your system:
 
 * Our pre-computed database, including instructions on how to create/upload the 
 database, can be found at ftp://supfam2.cs.bris.ac.uk/FATHMM/database
-* Create a configuration file named "config.ini" and enter the following (substituting 
-the required information with your credentials):
-
-```
-[DATABASE]
-HOST   = [MySQL Host]
-PORT   = [MySQL Port]
-USER   = [MySQL Username]
-PASSWD = [MySQL Password]
-DB     = fathmm
-```
-
-* Download "fathmm.py" from ./cgi-bin
+* Download "fathmm.py" and "config.ini" from the ./cgi-bin folder
+* Amend "config.ini", substituting the required information with your MySQL
+credentials:
 
 ## Running our Software
 
@@ -54,6 +44,8 @@ rs121912297
 P43026 L441P
 P35555 N548I,E1073K,C2307S 
 ```
+
+## Optional Parameters
 
 The --help parameter can be used to view additional program parameters.  In brief,
 there are two optional parameters:
@@ -87,8 +79,5 @@ KW : UniProtKB KeyWords
 ```
 
 ## Known Issues:
-
-* Our predictions appear to be derived/written slower than previous version(s) of our 
-software - we are looking into this issue and will provide an update as soon as possible.
 
 We welcome any comments and/or suggestions that you may have regarding our software and server - please send an email directly to fathmm@biocompute.org.uk

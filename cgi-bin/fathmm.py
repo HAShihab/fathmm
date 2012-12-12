@@ -167,7 +167,7 @@ def process_record(dbSNP, protein, substitution):
                 Tag = "DAMAGING" 
         else:
             # "Cancer-Associated" predictions ...
-            Tag = "NON-CANCER/PASSENGER"
+            Tag = "PASSENGER/OTHER"
         
             if float(Score) < -0.50:
                 Tag = "CANCER" 
@@ -217,13 +217,6 @@ if __name__ == '__main__':
                       metavar = "<PHENO>",
                       default = "DO"
                       )
-    parser.add_option(
-                      "--HTML",
-                      dest = "HTML",
-                      help = SUPPRESS_HELP,
-                      action = "store_true",
-                      default = False
-                      ) # web-based parameter used to write HTML predictions - hidden from program user(s)
 
     (options, args) = parser.parse_args()
     
@@ -321,72 +314,3 @@ if __name__ == '__main__':
     
     # move predictions to the requested location
     os.system("mv /tmp/" + os.path.basename(os.path.splitext(options.input)[0]) + ".tmp " + options.output)
-    
-    # 
-    # WRITE WEB-BASED PREDICTIONS (IF REQUESTED)
-    #
-    
-    if options.HTML:
-        HTM = open(os.path.splitext(options.output)[0] + ".htm", "w")
-        HTM.write(
-"""
-<table class="table table-striped">
-    <thead>
-        <tr>
-            <th>#</th>
-            <th>dbSNP ID</th>
-            <th>Protein ID</th>
-            <th>Substitution</th>
-            <th>Prediction</th>
-            <th>Score</th>
-            <th>Further Information</th>
-        </tr>
-    </thead>
-    <tbody>
-"""
-        )
-        
-        for record in open(options.output, "r"):
-            if record and not record.startswith("#"):
-                record = record.split("\t")
-                
-                # prediction formatting
-                if record[4] in [ "DAMAGING", "CANCER" ]:
-                    record[4] = "<p class='text-error'>%s</p>"% record[4]
-                else:
-                    record[4] = "<p class='text-success'>%s</p>"% record[4]
-                
-                # warning/phenotypes formatting
-                if record[7].strip():
-                    record[6] = record[7]
-                else:
-                    if record[6].strip():
-                        record[6] = "<ul>" + "".join([ "<li>" + x + "</li>" for x in record[6].split("|") ]) + "</ul>"
-                        
-                HTM.write(
-"""
-        <tr>
-            <td>""" + record[0] + """</td>
-            <td>""" + record[1] + """</td>
-            <td>""" + record[2] + """</td>
-            <td>""" + record[3] + """</td>
-            <td>""" + record[4] + """</td>
-            <td>""" + record[5] + """</td>
-            <td>""" + record[6] + """</td>
-        </tr>
-"""
-        )
-        
-        HTM.write(
-"""
-    </tbody>
-</table>
-
-<script>
-    document.getElementById("info").setAttribute("class", "btn btn-primary btn-large pull-right");
-    document.getElementById("info").innerHTML = "Download Predictions &raquo;";
-    
-    clearInterval(Refresh);
-</script>
-"""
-        )
