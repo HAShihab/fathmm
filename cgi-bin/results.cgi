@@ -101,7 +101,7 @@ if __name__ == '__main__':
                                 <span class="icon-bar"></span>
                                 <span class="icon-bar"></span>
                             </a>
-                            <a class="brand" href="#">fathmm</a>
+                            <a class="brand" href="">fathmm</a>
                             <div class="nav-collapse collapse">
                                 <ul class="nav">
                                     <li><a href="../index.html">Home</a></li>
@@ -255,7 +255,7 @@ if __name__ == '__main__':
                             <span class="icon-bar"></span>
                             <span class="icon-bar"></span>
                         </a>
-                        <a class="brand" href="#">fathmm</a>
+                        <a class="brand" href="">fathmm</a>
                         <div class="nav-collapse collapse">
                             <ul class="nav">
                                 <li><a href="../index.html">Home</a></li>
@@ -353,7 +353,7 @@ if __name__ == '__main__':
                             <span class="icon-bar"></span>
                             <span class="icon-bar"></span>
                         </a>
-                        <a class="brand" href="#">fathmm</a>
+                        <a class="brand" href="">fathmm</a>
                         <div class="nav-collapse collapse">
                             <ul class="nav">
                                 <li><a href="../index.html">Home</a></li>
@@ -441,7 +441,7 @@ if __name__ == '__main__':
                             <span class="icon-bar"></span>
                             <span class="icon-bar"></span>
                         </a>
-                        <a class="brand" href="#">fathmm</a>
+                        <a class="brand" href="">fathmm</a>
                         <div class="nav-collapse collapse">
                             <ul class="nav">
                                 <li><a href="../index.html">Home</a></li>
