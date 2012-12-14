@@ -1,0 +1,6 @@
+[DATABASE]
+HOST   = 127.0.0.1
+PORT   = 3311
+USER   = ephas
+PASSWD = b@rcel0na
+DB     = fathmm
