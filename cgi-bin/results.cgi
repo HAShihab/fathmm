@@ -90,6 +90,13 @@ if __name__ == '__main__':
             <script type="text/javascript" src="../js/bootstrap.min.js"></script>
             <script type="text/javascript" src="../js/jquery.min.js"></script>
             
+            <!-- DATA TABLE -->
+            <link href="../css/Data-Table.css" rel="stylesheet" type="text/css">
+            
+            <script type="text/javascript" src="../js/jquery.dataTables.min.js"></script>
+            <script type="text/javascript" src="../js/Data-Table.js"></script>
+        
+            <!-- GOOGLE ANALYTICS -->
             <script type="text/javascript">
               var _gaq = _gaq || [];
               _gaq.push(['_setAccount', 'UA-29568329-3']);
@@ -151,7 +158,7 @@ if __name__ == '__main__':
                 
                 <div class="row">
                     <div class="span12">
-                        <table class="table table-striped">
+                        <table class="table table-striped table-bordered" id="results">
                             <thead>
                                 <tr>
                                     <th>#</th>
@@ -207,10 +214,8 @@ if __name__ == '__main__':
                 We welcome any comments and/or suggestions that you may have regarding our software and server - please send an email directly to fathmm@biocompute.org.uk
                 </p>
                 </footer>
+                
             </div>
-        
-            <script type="text/javascript" src="../js/bootstrap.min.js"></script>
-            <script type="text/javascript" src="../js/jquery.min.js"></script>
         </body>
     </html>
                 """
@@ -322,10 +327,8 @@ if __name__ == '__main__':
             We welcome any comments and/or suggestions that you may have regarding our software and server - please send an email directly to fathmm@biocompute.org.uk
             </p>
             </footer>
+            
         </div>
-    
-        <script type="text/javascript" src="../js/bootstrap.min.js"></script>
-        <script type="text/javascript" src="../js/jquery.min.js"></script>
     </body>
 </html>
                 """
@@ -426,8 +429,6 @@ if __name__ == '__main__':
             </footer>
             
         </div>
-        <script type="text/javascript" src="../js/bootstrap.min.js"></script>
-        <script type="text/javascript" src="../js/jquery.min.js"></script>
     </body>
 </html>
             """
@@ -552,8 +553,6 @@ if __name__ == '__main__':
             </footer>
             
         </div>
-        <script type="text/javascript" src="../js/bootstrap.min.js"></script>
-        <script type="text/javascript" src="../js/jquery.min.js"></script>
     </body>
 </html>
         """
