@@ -12,13 +12,18 @@ from optparse import OptionParser, SUPPRESS_HELP
 
 #
 def map_position(domain, substitution):
+    """
+    return the corresponding position within a HMM (for a given amino 
+    acid position)
+    """
+    
     # return if the amino acid substitution falls outside of the domain 
     # assignment 
     if int(substitution[1:-1]) < int(domain['seq_start']) or \
        int(substitution[1:-1]) > int(domain['seq_end']):
         return None
     
-    # adjust sequence/HMM position (Python has zero-based coordinates)
+    # adjust the sequence/HMM position (Python has zero-based coordinates)
     x = int(domain['seq_start']) - 1 
     y = int(domain['hmm_start']) - 1 
     
@@ -39,93 +44,29 @@ def map_position(domain, substitution):
             # unmapped residue (i.e. insertion)
             return None
     return None
-    
+
 #
-def process_record(dbSNP, protein, substitution):
-    
-    #
-    # FETCH PRE-COMPUTED SEQUENCE RECORD
-    #
-    
-    dbCursor.execute("select a.* from Clusters a, Protein b where a.id=b.cluster and b.name='" + protein + "'")
-    SeqRecord = dbCursor.fetchone()
-    
-    if not SeqRecord:
-        # no pre-computed sequence record ...
-        Predictions.write(
-            "\t".join([ str(idx), dbSNP, protein, substitution, "", "", "", "No Sequence Record Found" ]) + "\n"
-        ); return False
-    
-    #
-    # AUTHENTICATE PROTEIN/SUBSTITUTION
-    #
-    
-    _         = None
-    
-    if not _ and not re.compile("^[ARNDCEQGHILKMFPSTWYV]\d+[ARNDCEQGHILKMFPSTWYV]$", re.IGNORECASE).match(substitution):
-        _     = "Invalid Substitution Format"
-    if not _ and int(substitution[1:-1]) > SeqRecord['sequence'].__len__():
-        _     = "Invalid Substitution Position"
-    if not _ and not substitution[0] == SeqRecord['sequence'][int(substitution[1:-1]) - 1]:
-        _     = "Inconsistent Wild-Type Residue (Expected '" + SeqRecord['sequence'][int(substitution[1:-1]) - 1] + "')"
-    if not _ and substitution[0] == substitution[-1]:
-        _     = "Synonymous Mutation"
-    if  _:
-        Predictions.write(
-            "\t".join([ str(idx), dbSNP, protein, substitution, "", "", "", _ ]) + "\n"
-        ); return False
-    
-    #
-    # CREATE A FACADE OF POSSIBLE PREDICTION(S)
-    #
-    
-    Facade    = []
-    
-    # fetch substitution-harbouring protein domains ...
-    dbCursor.execute("select * from Domains where id='" + SeqRecord['id'] + "' and " + substitution[1:-1] + " between seq_start and seq_end order by evalue")
-    DomRecord = dbCursor.fetchall()
-    
-    for x in DomRecord:
-        # map the substitution onto the HMMs
-        residue = map_position(x, substitution)
-            
-        if residue:
-            # fetch description/probabilities for mapped position
-            dbCursor.execute("select a.*, b.accession, b.description from Probabilities a, Library b where a.id=b.id and a.id='" + str(x['hmm']) + "' and a.position='" + residue + "'")
-            dbRecord = dbCursor.fetchone()
-            
-            if dbRecord:
-                Facade.append(dbRecord)
-    
-    # ... append JackHMMER probabilities
-    dbCursor.execute("select a.*, b.accession, b.description from Probabilities a, Library b where a.id=b.id and a.id='" + SeqRecord['id'] + "' and a.position='" + substitution[1:-1] + "'")
-    ConRecord = dbCursor.fetchone()
-    if ConRecord:
-        Facade.append(ConRecord)
-    
-    if not Facade:
-        # no domain assignments/JackHMMER conservation
-        Predictions.write(
-            "\t".join([ str(idx), dbSNP, protein, substitution, "", "", "", "No Prediction Available" ]) + "\n"
-        ); return False
-    
-    #
-    # DERIVE A PREDICTION USING THE MOST INFORMATIVE HMM WITHIN THE FACADE
-    #
+def fetch_prediction(facade, substitution):
+    """
+    return a prediction score, according to the requested algorithm, 
+    alongside domain-phenotype associations
+    """
     
     Score      = None
-    Phenotypes = None
+    Phenotypes = []
     
-    for x in sorted(Facade, key=lambda x:x['information'], reverse=True):
+    # use the most informative Facade record ...
+    for x in sorted(facade, key=lambda x:x['information'], reverse=True):
         if not Score:
             if options.weights.upper() == "UNWEIGHTED":
-                # "Unweighted Prediction" ...
+                # derive an "Unweighted Prediction" ...
                 p     = x[substitution[0]]
                 q     = x[substitution[-1]]
                 
                 Score = "%.2f" % math.log((q / (1.0 - q)) / (p / (1.0 - p)), 2)
             else:
-                # "Inherited/Cancer Prediction" ...
+                # derive a "Weighted" prediction depending on the selected
+                # pathogenicity weights ...
                 dbCursor.execute("select * from Weights where id='" + x['id'] + "' and type='" + options.weights + "'")
                 Weights   = dbCursor.fetchone()
 
@@ -137,27 +78,112 @@ def process_record(dbSNP, protein, substitution):
                     
                     Score = "%.2f" % math.log(((1.0 - p) * (r + 1.0)) / ((1.0 - q) * (s + 1.0)), 2)
         
-        if not Phenotypes:
-            # domain-phenotype prediction (via SUPERFAMILY)
+        # derive domain-phenotype associations (via the most informative
+        # SUPERFAMILY HMM)
+        if not Phenotypes and x['accession']:
             dbCursor.execute("select * from Phenotypes where accession='" + x['accession'] + "' and ontology='" + options.phenotypes + "' and origin=1 order by score")
             Phenotypes = dbCursor.fetchall()
             
         if Score and Phenotypes:
-            # prediction(s) made ...
+            # prediction(s) have been made ...
             break
     
-    #
-    # WRITE OUR PREDICTION
-    #
+    return (Score, Phenotypes)
+            
+#
+def process_record(dbSNP, protein, substitution):
+    """
     
+    """
+    
+    # fetch pre-computed sequence record
+    dbCursor.execute("select a.* from Clusters a, Protein b where a.id=b.cluster and b.name='" + protein + "'")
+    SeqRecord = dbCursor.fetchone()
+    
+    if not SeqRecord:
+        # no pre-computed sequence record
+        Predictions.write(
+            "\t".join([ str(idx), dbSNP, protein, substitution, "", "", "", "No Sequence Record Found" ]) + "\n"
+        ); return False
+    
+    # authenticate protein/substitution
+    Warning     = None
+    
+    if not Warning and not re.compile("^[ARNDCEQGHILKMFPSTWYV]\d+[ARNDCEQGHILKMFPSTWYV]$", re.IGNORECASE).match(substitution):
+        # authenticate substitution format
+        Warning = "Invalid Substitution Format"
+    if not Warning and int(substitution[1:-1]) > SeqRecord['sequence'].__len__():
+        # authenticate substitution position
+        Warning = "Invalid Substitution Position"
+    if not Warning and not substitution[0] == SeqRecord['sequence'][int(substitution[1:-1]) - 1]:
+        # authenticate substitution residue(s)
+        Warning = "Inconsistent Wild-Type Residue (Expected '" + SeqRecord['sequence'][int(substitution[1:-1]) - 1] + "')"
+    if not Warning and substitution[0] == substitution[-1]:
+        # authenticate substitution type
+        Warning = "Synonymous Mutation"
+    if  Warning:
+        # return the corresponding warning
+        Predictions.write(
+            "\t".join([ str(idx), dbSNP, protein, substitution, "", "", "", Warning ]) + "\n"
+        ); return False
+    
+    # create a facade of possible prediction(s)
+    Facade    = []
+    
+    # fetch substitution-harbouring protein domains
+    dbCursor.execute("select * from Domains where id='" + SeqRecord['id'] + "' and " + substitution[1:-1] + " between seq_start and seq_end order by evalue")
+    DomRecord = dbCursor.fetchall()
+    
+    for x in DomRecord:
+        # fetch the corresponding position within the HMMs
+        residue = map_position(x, substitution)
+            
+        if residue:
+            # fetch description/probabilities for mapped position
+            dbCursor.execute("select a.*, b.accession, b.description from Probabilities a, Library b where a.id=b.id and a.id='" + str(x['hmm']) + "' and a.position='" + residue + "'")
+            dbRecord = dbCursor.fetchone()
+            
+            if dbRecord:
+                # append as a possible prediction
+                Facade.append(dbRecord)
+    
+    # derive a prediction based on the most informative HMM
+    if options.weights.upper() == "UNWEIGHTED":
+        # if "Unweighted" prediction", append JackHMMER probabilities/conservation ...
+        dbCursor.execute("select a.*, b.accession, b.description from Probabilities a, Library b where a.id=b.id and a.id='" + SeqRecord['id'] + "' and a.position='" + substitution[1:-1] + "'")
+        ConRecord = dbCursor.fetchone()
+        
+        if ConRecord:
+            # append as a possible prediction
+            Facade.append(ConRecord)
+        
+        # fetch prediction(s) ...
+        (Score, Phenotypes) = fetch_prediction(Facade, substitution)
+    else:
+        # ... otherwise, prioritize domain-centric predictions i.e. use 
+        # JackHMMER probabilities/conservation when no domain-centric 
+        # predictions have been made
+        (Score, Phenotypes) = fetch_prediction(Facade, substitution)
+        
+        if not Score:
+            # no domain-centric prediction
+            dbCursor.execute("select a.*, b.accession, b.description from Probabilities a, Library b where a.id=b.id and a.id='" + SeqRecord['id'] + "' and a.position='" + substitution[1:-1] + "'")
+            ConRecord = dbCursor.fetchone()
+            
+            if ConRecord:
+                # append as a possible prediction
+                Facade.append(ConRecord)
+            
+            # fetch prediction(s) ...
+            (Score, Phenotypes) = fetch_prediction(Facade, substitution)
+        
+    # write our prediction
     if not Score:
         # no pathogenicity weights/prediction score
         Predictions.write(
             "\t".join([ str(idx), dbSNP, protein, substitution, "", "", "", "No Prediction Available" ]) + "\n"
         ); return False
     
-    Tag = None
-
     if not options.weights.upper() == "UNWEIGHTED":
         if options.weights.upper() == "INHERITED":
             # "Inherited Disease" predictions ...
@@ -293,12 +319,13 @@ if __name__ == '__main__':
                 else:
                     # parse protein/substitution(s) ...
                     Protein       = record.upper().split()[0]
-                    Substitutions = record.upper().split()[1].split(",")
+                    Substitutions = [ x.strip() for x in record.upper().split()[1].split(",") ]
                         
                     for x in Substitutions:
                         idx += 1
                         
-                        process_record("-", Protein, x)
+                        if x:
+                            process_record("-", Protein, x)
             #
             except Exception, e:
                 idx += 1
