@@ -166,7 +166,7 @@ def process_record(dbSNP, protein, substitution):
         (Score, Phenotypes) = fetch_prediction(Facade, substitution)
         
         if not Score:
-            # no domain-centric prediction
+            # append JackHMMER probabilities/conservation
             dbCursor.execute("select a.*, b.accession, b.description from Probabilities a, Library b where a.id=b.id and a.id='" + SeqRecord['id'] + "' and a.position='" + substitution[1:-1] + "'")
             ConRecord = dbCursor.fetchone()
             
@@ -195,7 +195,7 @@ def process_record(dbSNP, protein, substitution):
             # "Cancer-Associated" predictions ...
             Tag = "PASSENGER/OTHER"
         
-            if float(Score) < -0.50:
+            if float(Score) < -1.00:
                 Tag = "CANCER" 
     else:
         Tag = "TOLERATED"
