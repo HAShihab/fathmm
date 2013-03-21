@@ -96,6 +96,13 @@ def process_record(dbSNP, protein, substitution):
     
     """
     
+    # throw warning if prediction threshold is invalid
+    if not isinstance(options.threshold, float):
+        Predictions.write(
+            "\t".join([ str(idx), dbSNP, protein, substitution, "", "", "", "Invalid Prediction Threshold (" + str(options.threshold) + ")" ]) + "\n"
+        ); return False
+    
+    
     # fetch pre-computed sequence record
     dbCursor.execute("select a.* from Clusters a, Protein b where a.id=b.cluster and b.name='" + protein + "'")
     SeqRecord = dbCursor.fetchone()
@@ -184,24 +191,17 @@ def process_record(dbSNP, protein, substitution):
             "\t".join([ str(idx), dbSNP, protein, substitution, "", "", "", "No Prediction Available" ]) + "\n"
         ); return False
     
-    if not options.weights.upper() == "UNWEIGHTED":
-        if options.weights.upper() == "INHERITED":
-            # "Inherited Disease" predictions ...
-            Tag = "TOLERATED"
-            
-            if float(Score) < -1.50:
-                Tag = "DAMAGING" 
-        else:
-            # "Cancer-Associated" predictions ...
-            Tag = "PASSENGER/OTHER"
-        
-            if float(Score) < -1.00:
-                Tag = "CANCER" 
-    else:
-        Tag = "TOLERATED"
-        
-        if float(Score) < -3.00:
+    if options.weights.upper() in [ "UNWEIGHTED", "INHERITED" ]:
+        # "Inherited Disease" predictions ...
+        Tag     = "TOLERATED"
+        if float(Score) < options.threshold:
             Tag = "DAMAGING"
+    else:
+        # "Cancer-Associated" predictions ...
+        Tag     = "PASSENGER/OTHER"
+        if float(Score) < options.threshold:
+            Tag = "CANCER"
+    
     
     Predictions.write(
         "\t".join([ str(idx), dbSNP, protein, substitution, Tag, Score, "|".join([ x['description'] for x in Phenotypes ]), "" ]) + "\n"
@@ -211,14 +211,14 @@ def process_record(dbSNP, protein, substitution):
 if __name__ == '__main__':
     
     #
-    # PARSE PROGRAM ARGUMENTS
+    # OPTION PARSER
     #
     
     parser = OptionParser()
     parser.add_option(
                       "-i",
                       dest    = "input",
-                      help    = "process dbSNP rs IDs/protein missense mutations from <INPUT>", 
+                      help    = "process mutation data from <INPUT>", 
                       metavar = "<INPUT>",
                       default = None
                       )
@@ -234,30 +234,50 @@ if __name__ == '__main__':
                       dest    = "weights",
                       help    = "return weighted predictions using pathogenicity weights <WEIGHTS>", 
                       metavar = "<WEIGHTS>",
-                      default = "Inherited"
+                      default = "INHERITED"
+                      )
+    parser.add_option(
+                      "-t",
+                      dest    = "threshold",
+                      help    = "return predictions using <THRESHOLD> as a prediction threshold", 
+                      metavar = "<THRESHOLD>",
+                      default = None
                       )
     parser.add_option(
                       "-p",
                       dest    = "phenotypes",
                       help    = "append domain-phenotype associations for mutations using phenotype ontology <PHENO>", 
                       metavar = "<PHENO>",
-                      default = "DO"
+                      default = ""
                       )
 
     (options, args) = parser.parse_args()
     
     #
-    # AUTHENTICATE PROGRAM PARAMETERS
+    # PARSE/AUTHENTICATE PROGRAM PARAMETERS
     #
     
     if not options.input:
-        parser.error("No Input File Given (-i parameter)")
-    
-    if not options.output:
-        parser.error("No Output File Given (-o parameter)")
+        parser.error("Warning: No Input File Specified ")
         
+    if not options.output:
+        parser.error("Warning: No Output File Specified ")
+        
+    if not options.weights:
+        parser.error("Warning: No Pathogenicity Weights Specified ")
+
     if not options.weights.upper() in [ "UNWEIGHTED", "INHERITED", "CANCER" ]:
-        parser.error("Invalid Weighting Scheme")
+        parser.error("Warning: Invalid Pathogenicity Weights ")
+        
+    if options.threshold:
+        try:
+            options.threshold = float(options.threshold)
+        except:
+            pass
+    else:
+        if options.weights.upper() == "UNWEIGHTED": options.threshold = -3.00
+        if options.weights.upper() == "INHERITED":  options.threshold = -1.50
+        if options.weights.upper() == "CANCER":     options.threshold = -0.75
     
     #
     # INITIALIZE DATABASE CONNECTION/CURSOR

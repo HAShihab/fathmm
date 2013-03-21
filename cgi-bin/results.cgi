@@ -36,6 +36,7 @@ if __name__ == '__main__':
                        "# Time: " + time.strftime("%H:%M:%S", HTMLTime) + "\n",
                        "# Weights: " + str(HTMLForm['weighted'].value).upper() + "\n",
                        "# Phenotypes: " + str(HTMLForm['phenotypes'].value).upper() + "\n",
+                       "# Threshold: " + str(HTMLForm['threshold'].value) + "\n",
                        str(HTMLForm['batch'].value)
                      ]:
                 open("../tmp/" + HTMLSession + ".txt", "a").write(x)
@@ -45,7 +46,8 @@ if __name__ == '__main__':
                                      '-i', '../tmp/' + HTMLSession + '.txt',
                                      '-o', '../tmp/' + HTMLSession + '.tab',
                                      '-w', str(HTMLForm['weighted'].value),
-                                     '-p', str(HTMLForm['phenotypes'].value)
+                                     '-p', str(HTMLForm['phenotypes'].value),
+                                     '-t', str(HTMLForm['threshold'].value)
                                    ], stdout=subprocess.PIPE, stderr=subprocess.PIPE, stdin=subprocess.PIPE)
         #
         else:
@@ -58,10 +60,6 @@ if __name__ == '__main__':
             if os.path.exists("../tmp/" + HTMLSession + ".tab"):
                 print """
     <!DOCTYPE html>
-    <!--[if lt IE 7]> <html class="lt-ie9 lt-ie8 lt-ie7"> <![endif]-->
-    <!--[if IE 7]> <html class="lt-ie9 lt-ie8"> <![endif]-->
-    <!--[if IE 8]> <html class="lt-ie9"> <![endif]-->
-    <!--[if gt IE 8]><!--> <html class=""> <!--<![endif]-->
         <head>
             <title>fathmm - fathmm Predictions</title>
 
@@ -144,6 +142,7 @@ if __name__ == '__main__':
                 
                 <div class="hero-unit">
                     <h2>fathmm Predictions</h2>
+                    <br />
                     <p>
                         Your request has now been processed and our predictions have been written onto your screen - a "tab-delimited" report of our predictions
                         has been made available below.&nbsp;&nbsp;In addition, you can retrieve your results at any time using the below Job/Session Identifier.
@@ -308,6 +307,7 @@ if __name__ == '__main__':
             
             <div class="hero-unit">
                 <h2>fathmm Predictions</h2>
+                <br />
                 <p>
                     Your request is now being processed and our predictions will be written onto your screen once completed - if you submitted a large batch, 
                     please be patient as this may take a while.&nbsp;&nbsp;Alternatively, you can retrieve your results at any time using the below Job/Session 
@@ -416,6 +416,7 @@ if __name__ == '__main__':
             
             <div class="hero-unit">
                 <h2>Unknown Job/Session Identifier</h2>
+                <br />
                 <p>
                     You have entered an invalid or unknown Job/Session Identifier - please note, predictions are typically stored on our server for one week before being deleted.
                 </p>
@@ -514,6 +515,7 @@ if __name__ == '__main__':
             
             <div class="hero-unit">
                 <h2>Server Error</h2>
+                <br />
                 <p>
                     It appears there is a problem with our server - please try again and/or report the problem to the system administrator
                     using the following address: fathmm.biocompute.org.uk
@@ -551,8 +553,11 @@ if __name__ == '__main__':
             We welcome any comments and/or suggestions that you may have regarding our software and server - please send an email directly to fathmm@biocompute.org.uk
             </p>
             </footer>
-            
         </div>
+        
+        <script type="text/javascript" src="../js/bootstrap.min.js"></script>
+        <script type="text/javascript" src="../js/jquery.min.js"></script>
+        
     </body>
 </html>
         """

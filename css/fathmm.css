@@ -34,3 +34,5 @@ a:hover {
 .modal, .btn-large { 
     outline: none;
 }
+
+.tab-content {overflow-x: hidden;}

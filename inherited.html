@@ -132,79 +132,98 @@
             <div class="row">
                 <div class="span12">
                     <form class="form-horizontal" id="myForm" name="myForm" action="./cgi-bin/results.cgi" method="post" enctype="multipart/form-data">
-                        <legend><h3>Batch Query:</h3></legend>
-
+                        <legend><h3>Enter Your Mutations:</h3></legend>
+                        
+                        <input type="hidden" name="threshold" id="threshold" value="">
+                        
                         <div class="row-fluid">
                             <div class="span12">
-                                <div class="well well-large" style="height: 275px;">
+                                <div class="well well-large">
                                     <div class="row-fluid">
-                                        <div class="span12">
+                                        <div class="span11">
                                             <div class="row-fluid">
-                                                <div class="span8">
+                                                <div class="span7">
                                                     <div class="control-group">
                                                         <label class="control-label" for="batch">User Input</label>
                                                         <div class="controls">
-                                                            <textarea id="batch" name="batch" type="text" class="span12" style="resize: none;" rows="5"></textarea>
+                                                            <textarea id="batch" name="batch" type="text" class="span12" style="resize: none;" rows="8"></textarea>
                                                         </div>
                                                     </div>  
                                                 </div>
-                                                <div class="help-inline span4">
-                                                    For further information pertaining to the submission format, please click on the 'Example' button above.
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div class="row-fluid">
-                                        <div class="span12">
-                                            <div class="row-fluid">
-                                                <div class="span8">
-                                                    <div class="control-group">
-                                                        <label class="control-label" for="weighted">Prediction Algorithm</label>
-                                                        <div class="controls">
-                                                            <select id="weighted" name="weighted" class="span12">
-                                                                <option value="inherited" selected>Weighted</option>
-                                                                <option value="unweighted">Unweighted</option>
-                                                            </select>
+                                                <div class="help-inline span5">
+                                                    
+                                                    
+                                                    <div class="row-fluid">
+                                                        <div class="span12">
+                                                            <div class="row-fluid">
+                                                                <div class="span12">
+                                                                    <div class="control-group">
+                                                                        <label class="control-label" for="weighted">Prediction Algorithm</label>
+                                                                        <div class="controls">
+                                                                            <select id="weighted" name="weighted" class="span12">
+                                                                                <option value="INHERITED" selected>Weighted</option>
+                                                                                <option value="UNWEIGHTED">Unweighted</option>
+                                                                            </select>
+                                                                        </div>
+                                                                    </div>  
+                                                                </div>
+                                                            </div>
                                                         </div>
-                                                    </div>  
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div class="row-fluid">
-                                        <div class="span12">
-                                            <div class="row-fluid">
-                                                <div class="span8">
-                                                    <div class="control-group">
-                                                        <label class="control-label" for="phenotypes">Phenotypic Associations</label>
-                                                        <div class="controls">
-                                                            <select id="phenotypes" name="phenotypes" class="span12">
-                                                                <option value="DO" selected>Disease Ontology</option>
-                                                                <option value="GO">Gene Ontology</option>
-                                                                <option value="HP">Human Phenotype Ontology</option>
-                                                                <option value="MP">Mouse Phenotype Ontology</option>
-                                                                <option value="WP">Worm Phenotype Ontology</option>
-                                                                <option value="YP">Yeast Phenotype Ontology</option>
-                                                                <option value="FP">Fly Phenotype Ontology</option>
-                                                                <option value="FA">Fly Anatomy Ontology</option>
-                                                                <option value="ZA">Zebrafish Anatomy Ontology</option>
-                                                                <option value="AP">Arabidopsis Plant Ontology</option>
-                                                                <option value="KW">UniProtKB KeyWords</option>
-                                                            </select>
+                                                    </div>
+                                                    <div class="row-fluid">
+                                                        <div class="span12">
+                                                            <div class="row-fluid">
+                                                                <div class="span12">
+                                                                    <div class="control-group">
+                                                                        <label class="control-label" for="phenotypes">Phenotypic Associations</label>
+                                                                        <div class="controls">
+                                                                            <select id="phenotypes" name="phenotypes" class="span12">
+                                                                                <option value="DO" selected>Disease Ontology</option>
+                                                                                <option value="GO">Gene Ontology</option>
+                                                                                <option value="HP">Human Phenotype Ontology</option>
+                                                                                <option value="MP">Mouse Phenotype Ontology</option>
+                                                                                <option value="WP">Worm Phenotype Ontology</option>
+                                                                                <option value="YP">Yeast Phenotype Ontology</option>
+                                                                                <option value="FP">Fly Phenotype Ontology</option>
+                                                                                <option value="FA">Fly Anatomy Ontology</option>
+                                                                                <option value="ZA">Zebrafish Anatomy Ontology</option>
+                                                                                <option value="AP">Arabidopsis Plant Ontology</option>
+                                                                                <option value="KW">UniProtKB KeyWords</option>
+                                                                            </select>
+                                                                        </div>
+                                                                    </div>  
+                                                                </div>
+                                                            </div>
                                                         </div>
-                                                    </div>  
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div class="row-fluid">
-                                        <div class="span12">
-                                            <div class="row-fluid">
-                                                <div class="span8">
-                                                    <div class="control-group pull-right">
-                                                        <div class="controls">
-                                                        <button type="reset" class="btn">Clear</button>
-                                                        <button type="submit" class="btn">Submit</button>
+                                                    </div>
+<!--
+                                                    <div class="row-fluid">
+                                                        <div class="span12">
+                                                            <div class="row-fluid">
+                                                                <div class="span12">
+                                                                    <div class="control-group">
+                                                                        <label class="control-label" for="phenotypes">Prediction Threshold</label>
+                                                                        <div class="controls">
+                                                                            <input id="threshold" name="threshold" type="text" class="span12" value="0.75">
+                                                                        </div>
+                                                                    </div>  
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+-->
+                                                    <div class="row-fluid">
+                                                        <div class="span12">
+                                                            <div class="row-fluid">
+                                                                <div class="span12">
+                                                                    <div class="control-group pull-right">
+                                                                        <div class="controls">
+                                                                        <button type="reset" class="btn">Clear</button>
+                                                                        <button type="submit" class="btn">Submit</button>
+                                                                        </div>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
                                                         </div>
                                                     </div>
                                                 </div>

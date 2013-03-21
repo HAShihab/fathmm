@@ -1,8 +1,4 @@
 <!DOCTYPE html>
-<!--[if lt IE 7]> <html class="lt-ie9 lt-ie8 lt-ie7"> <![endif]-->
-<!--[if IE 7]>    <html class="lt-ie9 lt-ie8"> <![endif]-->
-<!--[if IE 8]>    <html class="lt-ie9"> <![endif]-->
-<!--[if gt IE 8]><!--> <html class=""> <!--<![endif]-->
     <head>
         <title>fathmm - Analyze Cancer-Associated Variants</title>
 
@@ -10,7 +6,7 @@
         
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <meta name="description" content="Analyze Cancer-Associated Variants">
-        <meta name="keywords" content="Cancer Associated Mutation, Missense Mutation, Amino Acid Substitutions, Hidden Markov Models, HMMs, Single Nucleotide Polymorphisms, SNPs, Non Synonymous Mutation, nsSNPs, FATHMM">
+        <meta name="keywords" content="Cancer, Cancer Associated Mutation, Driver Mutation, Passenger Mutation, Missense Mutation, Amino Acid Substitutions, Hidden Markov Models, HMMs, Single Nucleotide Polymorphisms, SNPs, Non Synonymous Mutation, nsSNPs, fathmm">
         <meta name="author" content="Hashem A. Shihab">
         
         <meta http-equiv="cache-control" content="max-age=0" />
@@ -30,6 +26,8 @@
         
         <script type="text/javascript" src="./js/bootstrap.min.js"></script>
         <script type="text/javascript" src="./js/jquery.min.js"></script>
+        <script type="text/javascript" src="./js/jquery.flot.js"></script>
+        <script type="text/javascript" src="./js/jquery.flot.crosshair.js"></script> 
         
         <script type="text/javascript">
           var _gaq = _gaq || [];
@@ -45,6 +43,7 @@
     </head>
 
     <body>
+        <a id="top"></a>
         <div class="container">
             <div class="navbar navbar-fixed-top">
                 <div class="navbar-inner">
@@ -80,122 +79,199 @@
                 <h2>Analyze Cancer-Associated Variants</h2>
                 <br />
                 <p>
-                    Obtain instant disease-specific predictions capable of distinguishing between cancer-promoting/driver and neutral/passsenger mutations.
-                </p>
-                <p>
-                    <a href="#info" role="button" data-toggle="modal" class="btn btn-primary btn-large pull-right">Example &raquo;</a>
+                    Obtain instant predictions capable of distinguishing between cancer-promoting/driver mutations, passsenger mutations and other germline polymorphisms.
                 </p>
             </div>
             
-            <div id="info" class="modal hide fade" tabindex="-1" role="dialog" aria-labelledby="head" aria-hidden="true">
-                <div class="modal-header">
-                    <h3 id="head">Submission Information:</h3>
-                </div>
-                <div class="modal-body">
-                    <p>
-                        A combination of the below is accepted/valid input:
-                        <br />
-                        <ul>
-                            <li>Human dbSNP rs IDs (dbSNP 137 - multiple SNPs should be entered on separate lines).
-                            </li>
-                            <li>
-                                Human SwissProt/TrEMBL and/or Ensembl protein identifiers followed by the amino 
-                                acid substitution in the conventional one letter format - multiple substitutions 
-                                can be entered on a single line and should be separated by a comma.
-                            </li>
-                        </ul>
-                        <b>Example Submission:</b>
-                        <br />
-                        <br />
-                        rs137854462
-                        <br />
-                        rs28936683
-                        <br />
-                        rs121908258
-                        <br />
-                        rs17882252
-                        <br />
-                        P43026 L441P
-                        <br />
-                        P04637 E258A,R280G,G302E
-                        <br />
-                    </p>
-                </div>
-                <div class="modal-footer">
-                    <button class="btn" data-dismiss="modal" aria-hidden="true">Close</button>
-                </div>
-            </div>
-            
-            <div class="row">
-                <div class="span12">
-                    <form class="form-horizontal" id="myForm" name="myForm" action="./cgi-bin/results.cgi" method="post" enctype="multipart/form-data">
-                        <legend><h3>Batch Query:</h3></legend>
+            <ul class="nav nav-tabs" id="myTab">
+                <li id="new-tab" class="active">
+                    <a href="#new" onclick="javascript: remove();" data-toggle="tab">New Submission</a>
+                </li>
+                <li id="eg-tab">
+                    <a href="#new" onclick="javascript: put();" data-toggle="tab">Use Example</a>
+                </li>
+                <li id="doc-tab">
+                    <a href="#documentation" data-toggle="tab">Help/Documentation</a>
+                </li>
+            </ul>
 
-                        <div class="row-fluid">
-                            <div class="span12">
-                                <div class="well well-large" style="height: 225px;">
-                                    <div class="row-fluid">
-                                        <div class="span12">
+            <div class="tab-content">
+                <div class="tab-pane active" id="new">
+                    <div class="row">
+                        <div class="span12">
+                            <form class="form-horizontal" id="myForm" name="myForm" action="./cgi-bin/results.cgi" method="post" enctype="multipart/form-data">
+                                <legend><h3>Enter Your Mutations:</h3></legend>
+                                
+                                <input type="hidden" name="weighted" id="weighted" value="CANCER">
+                                <input type="hidden" name="phenotypes" id="phenotypes" value="">
+                                
+                                <div class="row-fluid">
+                                    <div class="span12">
+                                        <div class="well well-large">
                                             <div class="row-fluid">
-                                                <div class="span8">
-                                                    <div class="control-group">
-                                                        <label class="control-label" for="batch">User Input</label>
-                                                        <div class="controls">
-                                                            <textarea id="batch" name="batch" type="text" class="span12" style="resize: none;" rows="5"></textarea>
+                                                <div class="span11">
+                                                    <div class="row-fluid">
+                                                        <div class="span7">
+                                                            <div class="control-group">
+                                                                <label class="control-label" for="batch">User Input</label>
+                                                                <div class="controls">
+                                                                    <textarea id="batch" name="batch" type="text" class="span11" style="resize: none;" rows="5"></textarea>
+                                                                    <a href="#documentation" data-toggle="tab" id="show_documentation" class="icon-question-sign"></a>
+                                                                </div>
+                                                            </div>  
                                                         </div>
-                                                    </div>  
-                                                </div>
-                                                <div class="help-inline span4">
-                                                    For further information pertaining to the submission format, please click on the 'Example' button above.
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <input type="hidden" name="weighted" id="weighted" value="Cancer">
-                                    <div class="row-fluid">
-                                        <div class="span12">
-                                            <div class="row-fluid">
-                                                <div class="span8">
-                                                    <div class="control-group">
-                                                        <label class="control-label" for="phenotypes">Phenotypic Associations</label>
-                                                        <div class="controls">
-                                                            <select id="phenotypes" name="phenotypes" class="span12">
-                                                                <option value="DO" selected>Disease Ontology</option>
-                                                                <option value="GO">Gene Ontology</option>
-                                                                <option value="HP">Human Phenotype Ontology</option>
-                                                                <option value="MP">Mouse Phenotype Ontology</option>
-                                                                <option value="WP">Worm Phenotype Ontology</option>
-                                                                <option value="YP">Yeast Phenotype Ontology</option>
-                                                                <option value="FP">Fly Phenotype Ontology</option>
-                                                                <option value="FA">Fly Anatomy Ontology</option>
-                                                                <option value="ZA">Zebrafish Anatomy Ontology</option>
-                                                                <option value="AP">Arabidopsis Plant Ontology</option>
-                                                                <option value="KW">UniProtKB KeyWords</option>
-                                                            </select>
-                                                        </div>
-                                                    </div>  
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div class="row-fluid">
-                                        <div class="span12">
-                                            <div class="row-fluid">
-                                                <div class="span8">
-                                                    <div class="control-group pull-right">
-                                                        <div class="controls">
-                                                        <button type="reset" class="btn">Clear</button>
-                                                        <button type="submit" class="btn">Submit</button>
+                                                        <div class="help-inline span5">
+                                                            <div class="row-fluid">
+                                                                <div class="span12">
+                                                                    <div class="row-fluid">
+                                                                        <div class="span12">
+                                                                            <div class="control-group">
+                                                                                <label class="control-label" for="phenotypes">Prediction Threshold</label>
+                                                                                <div class="controls">
+                                                                                    <input id="threshold" name="threshold" type="text" class="span11" value="-0.75">
+                                                                                    <a href="#documentation" data-toggle="tab" id="show_documentation" class="icon-question-sign"></a>
+                                                                                </div>
+                                                                            </div>  
+                                                                        </div>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                            <div class="row-fluid">
+                                                                <div class="span12">
+                                                                    <div class="row-fluid">
+                                                                        <div class="span12">
+                                                                            <div class="control-group pull-right">
+                                                                                <div class="controls">
+                                                                                <button type="reset" class="btn">Clear</button>
+                                                                                <button type="submit" class="btn">Submit</button>
+                                                                                </div>
+                                                                            </div>
+                                                                        </div>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
                                                         </div>
                                                     </div>
                                                 </div>
                                             </div>
                                         </div>
                                     </div>
-                                </div>
-                            </div>
-                        </div>      
-                    </form>
+                                </div>      
+                            </form>
+                        </div>
+                    </div>
+                </div>
+                <div class="tab-pane" id="documentation">
+                    <div class="row">
+                        <div class="span3" id="navparent">
+                            <ul class="nav nav-list navex">
+                                <li><a href="#overview"><i class="icon-chevron-right"></i> Overview</a></li>
+                                <li><a href="#format"><i class="icon-chevron-right"></i> Input Format</a></li>
+                                <li><a href="#cutoff"><i class="icon-chevron-right"></i> Prediction Threshold</a></li>
+                                <li><a href="#vcf"><i class="icon-chevron-right"></i> Annotating VCF's</a></li>
+                            </ul>
+                        </div>
+                        <div class="span9">
+                            <section id="overview">
+                                <h1>Overview:</h1>
+                                <br />
+                                <p>
+                                    Our cancer-specific algorithm is capable of predicting the functional effects of cancer-associated protein missense mutations by combining
+                                    sequence conservation within hidden Markov models (HMMs), representing the alignment of homologous sequences and conserved 
+                                    protein domains, with cancer-specific "pathogenicity weights", representing the overall tolerance of the corresponding model 
+                                    to cancer mutations.
+                                    <br /><br />
+                                    For more information, please refer to the following publications:
+                                    <br /><br />
+                                    Shihab HA, Gough J, Cooper DN, Day INM, Gaunt, TR. (Submitted). Predicting the Functional Consequences of Cancer-Associated Amino Acid Substitutions.
+                                    <br /><br />
+                                    Shihab HA, Gough J, Cooper DN, Stenson PD, Barker GLA, Edwards KJ, Day INM, Gaunt, TR. (2013). Predicting the Functional, Molecular and Phenotypic
+                                    Consequences of Amino Acid Substitutions using Hidden Markov Models. <i>Hum. Mutat.</i>, <b>34</b>, 57-65
+                                    <a href="http://www.ncbi.nlm.nih.gov/pubmed/23033316"><img src="./img/pubmed.png" alt="fathmm Paper"></a>
+                                </p>
+                                <a href='./cancer.html#top'>Back to top ...</a>
+                            </section>
+                            <br />
+                            <section id="format">
+                                <h1>Input Format:</h1>
+                                <br />
+                                <p>
+                                Our server accepts one of the following formats (see <a href="./cancer.html#vcf">here</a> for annotating VCF files):
+                                
+                                <br /><br />
+                                <ul>
+                                    <li>
+                                        <code>&lt;protein&gt; &lt;substitution&gt;</code>
+                                    </li>
+                                </ul>
+                                <br />
+                                Where <code>&lt;protein&gt;</code> is the protein identifier and <code>&lt;substitution&gt;</code> is the amino acid substitution in the conventional one 
+                                letter format.  At present, our server accepts SwissProt/TrEMBL and Ensembl protein identifiers - multiple amino acid substitutions 
+                                can be entered on a single line and should be separated by a comma, e.g:
+                                <br /><br />
+<pre>
+P43026 L441P
+ENSP00000269305 E258A,R280G,G302E
+</pre>
+                                <br />
+                                <ul>
+                                    <li>
+                                        <code>dbSNP rs identifiers</code>
+                                    </li>
+                                </ul>
+                                <br />
+                                At present, our server accepts dbSNP v.137 annotations (we are working towards incorporating other versions of dbSNP into our database) - multiple dbSNP 
+                                identifiers should be entered on separate lines, e.g.:
+                                <br /><br />  
+<pre>
+rs137854462
+rs28936683
+rs121908258
+rs17882252
+</pre>
+
+                                </p>
+                                <a href='./cancer.html#top'>Back to top ...</a>
+                            </section>
+                            <br />
+                            <section id="cutoff">
+                                <h1>Prediction Threshold:</h1>
+                                <br />
+                                <p>
+                                As described in our paper (submitted), our server uses a default prediction threshold of -0.75; however, this can be adjusted and tuned to cater 
+                                for your individual needs.  If you are interested in minimising the number of false positives in your analysis, then you should opt 
+                                for a more conservative threshold, e.g. -3.0; however, if you are interested in capturing a large proportion of cancer-associated mutations (regardless of 
+                                the number of false positives), then a less stringent threshold should be selected, e.g. 0.0 or higher.  To inform you of this choice, the specificity and sensitivity 
+                                of our software at various prediction thresholds can be seen using the below interactive graph:
+                                <br /><br />
+                                
+                                <center><div id="placeholder" style="width:600px; height:300px"></div></center>
+                                <br />
+                                <center>Prediction Threshold</center>
+                                
+                                </p>
+                                <a href='./cancer.html#top'>Back to top ...</a>
+                            </section>
+                            
+                            <br />
+                            <section id="vcf">
+                                <h1>VCF Annotation:</h1>
+                                <br />
+                                <p>
+                                Unfortunately, due to disk space constraints, we are unable to annotate Variant Call Format (VCF) files on your behalf.  However, the consequences of all VCF variants 
+                                can be derived using the <b><a href="http://www.ensembl.org/info/docs/variation/vep/index.html">Ensembl Variant Effect Predictor (VEP)</a></b>.
+                                Once annotated, the following script <b><a href="./parseVCF.py">(available here)</a></b> is capable of parsing these annotations and will provide you with a list of protein 
+                                consequences which can then be used as input into our server/software.  
+                                <br /><br />
+                                Additional help on using our script is available by typing the following command:
+                                <pre>python parseVCF.py --help</pre>
+                                              
+                                </p> 
+                                <a href='./cancer.html#top'>Back to top ...</a>
+                            </section>
+                            
+                        </div>
+                    </div>
                 </div>
             </div>
             
@@ -205,11 +281,150 @@
             We welcome any comments and/or suggestions that you may have regarding our software and server - please send an email directly to fathmm@biocompute.org.uk
             </p>
             </footer>
-            
         </div>
         
         <script type="text/javascript" src="./js/bootstrap.min.js"></script>
         <script type="text/javascript" src="./js/jquery.min.js"></script>
+        <script type="text/javascript" src="./js/jquery.flot.js"></script>
+        <script type="text/javascript" src="./js/jquery.flot.crosshair.js"></script> 
         
+        <script type="text/javascript">
+            $("#new-tab").click(function() {
+                $('#myForm')[0].reset();
+            });
+            $("#eg-tab").click(function() {
+                $('#myForm')[0].reset();
+                document.forms['myForm'].elements['batch'].value = "P43026 L441P\nENSP00000269305 E258A,R280G,G302E";
+            });
+            $("#show_documentation").click(function() {
+                $('#new-tab').removeClass('active');
+                $('#eg-tab').removeClass('active');
+                $('#doc-tab').addClass('active');      
+            });
+        </script>
+        
+        <script type="text/javascript">
+            $(function() {
+                var Specificity = [];
+                var Sensitivity = [];
+                
+                Specificity.push([-3.0, 0.99]);
+                Sensitivity.push([-3.0, 0.45]);
+                Specificity.push([-2.75, 0.98]);
+                Sensitivity.push([-2.75, 0.50]);
+                Specificity.push([-2.5, 0.98]);
+                Sensitivity.push([-2.5, 0.55]);
+                Specificity.push([-2.25, 0.97]);
+                Sensitivity.push([-2.25, 0.59]);
+                Specificity.push([-2.0, 0.97]);
+                Sensitivity.push([-2.0, 0.66]);
+                Specificity.push([-1.75, 0.96]);
+                Sensitivity.push([-1.75, 0.74]);
+                Specificity.push([-1.5, 0.94]);
+                Sensitivity.push([-1.5, 0.80]);
+                Specificity.push([-1.25, 0.93]);
+                Sensitivity.push([-1.25, 0.85]);
+                Specificity.push([-1.0, 0.90]);
+                Sensitivity.push([-1.0, 0.89]);
+                Specificity.push([-0.75, 0.88]);
+                Sensitivity.push([-0.75, 0.91]);
+                Specificity.push([-0.5, 0.87]);
+                Sensitivity.push([-0.5, 0.92]);
+                Specificity.push([-0.25, 0.85]);
+                Sensitivity.push([-0.25, 0.92]);
+                Specificity.push([0, 0.81]);
+                Sensitivity.push([0, 0.94]);
+                Specificity.push([0.25, 0.77]);
+                Sensitivity.push([0.25, 0.96]);
+                Specificity.push([0.5, 0.73]);
+                Sensitivity.push([0.5, 0.96]);
+                Specificity.push([0.75, 0.68]);
+                Sensitivity.push([0.75, 0.97]);
+                Specificity.push([1, 0.61]);
+                Sensitivity.push([1, 0.97]);
+
+                plot = $.plot("#placeholder", [
+                    { data: Specificity, label: "Specificity=-0.00"},
+                    { data: Sensitivity, label: "Sensitivity=-0.00" }
+                ], {
+                    series: {
+                        lines: {
+                            show: true
+                        }
+                    },
+                    crosshair: {
+                        mode: "x"
+                    },
+                    grid: {
+                        hoverable: true,
+                        autoHighlight: false
+                    },
+                    yaxis: {
+                        min: 0,
+                        max: 1,
+                        show: false
+                    },
+                    xaxis: {
+                        min: -3.0,
+                        max: 1.0,
+                        ticks: 15
+                    },
+                    legend: {
+                        position: "se"
+                    }
+                });
+
+                var legends = $("#placeholder .legendLabel");
+                legends.each(function () {
+                    $(this).css('width', $(this).width());
+                });
+
+                var updateLegendTimeout = null;
+                var latestPosition = null;
+
+                function updateLegend() {
+
+                    updateLegendTimeout = null;
+
+                    var pos = latestPosition;
+
+                    var axes = plot.getAxes();
+                    if (pos.x < axes.xaxis.min || pos.x > axes.xaxis.max ||
+                        pos.y < axes.yaxis.min || pos.y > axes.yaxis.max) {
+                        return;
+                    }
+
+                    var i, j, dataset = plot.getData();
+                    for (i = 0; i < dataset.length; ++i) {
+
+                        var series = dataset[i];
+                        for (j = 0; j < series.data.length; ++j) {
+                            if (series.data[j][0] > pos.x) {
+                                break;
+                            }
+                        }
+
+                        var y,
+                            p1 = series.data[j - 1],
+                            p2 = series.data[j];
+
+                        if (p1 == null) {
+                            y = p2[1];
+                        } else if (p2 == null) {
+                            y = p1[1];
+                        } else {
+                            y = p1[1] + (p2[1] - p1[1]) * (pos.x - p1[0]) / (p2[0] - p1[0]);
+                        }
+                        legends.eq(i).text(series.label.replace(/=.*/, "=" + y.toFixed(2)));
+                    }
+                }
+                $("#placeholder").bind("plothover",  function (event, pos, item) {
+                    latestPosition = pos;
+                    if (!updateLegendTimeout) {
+                        updateLegendTimeout = setTimeout(updateLegend, 50);
+                    }
+                });
+            });
+	    </script>
     </body>
 </html>
