@@ -1,7 +1,6 @@
 
 body {
     padding-top: 105px;
-    padding-bottom: 40px;
     text-align: justify;
 }
 footer {
@@ -35,4 +34,6 @@ a:hover {
     outline: none;
 }
 
-.tab-content {overflow-x: hidden;}
+.tab-content {
+    overflow-x: hidden;
+}

@@ -1,4 +1,8 @@
 <!DOCTYPE html>
+<!--[if lt IE 7]> <html class="lt-ie9 lt-ie8 lt-ie7"> <![endif]-->
+<!--[if IE 7]>    <html class="lt-ie9 lt-ie8"> <![endif]-->
+<!--[if IE 8]>    <html class="lt-ie9"> <![endif]-->
+<!--[if gt IE 8]><!--> <html class=""> <!--<![endif]-->
     <head>
         <title>fathmm - Analyze Cancer-Associated Variants</title>
 
@@ -116,7 +120,7 @@
                                                                 <label class="control-label" for="batch">User Input</label>
                                                                 <div class="controls">
                                                                     <textarea id="batch" name="batch" type="text" class="span11" style="resize: none;" rows="5"></textarea>
-                                                                    <a href="#documentation" data-toggle="tab" id="show_documentation" class="icon-question-sign"></a>
+                                                                    <a href="#documentation" data-toggle="tab" class="icon-question-sign" onclick="javascript: $('#new-tab').removeClass('active'); $('#eg-tab').removeClass('active'); $('#doc-tab').addClass('active');"></a>
                                                                 </div>
                                                             </div>  
                                                         </div>
@@ -129,7 +133,7 @@
                                                                                 <label class="control-label" for="phenotypes">Prediction Threshold</label>
                                                                                 <div class="controls">
                                                                                     <input id="threshold" name="threshold" type="text" class="span11" value="-0.75">
-                                                                                    <a href="#documentation" data-toggle="tab" id="show_documentation" class="icon-question-sign"></a>
+                                                                                    <a href="#documentation" data-toggle="tab" class="icon-question-sign" onclick="javascript: $('#new-tab').removeClass('active'); $('#eg-tab').removeClass('active'); $('#doc-tab').addClass('active');"></a>
                                                                                 </div>
                                                                             </div>  
                                                                         </div>
@@ -277,9 +281,14 @@ rs17882252
             
             <hr>
             <footer>
-            <p>
-            We welcome any comments and/or suggestions that you may have regarding our software and server - please send an email directly to fathmm@biocompute.org.uk
-            </p>
+                <p>
+                    If you have found this resource useful, please cite the following work:
+                    <br />
+                    <a href="http://www.ncbi.nlm.nih.gov/pubmed/23033316">Shihab HA, Gough J, Cooper DN, Stenson PD, Barker GLA, Edwards KJ, Day INM, Gaunt, TR. (2013). Predicting the Functional, Molecular and Phenotypic Consequences of Amino Acid Substitutions using Hidden Markov Models. Hum. Mutat., <b>34</b>, 57-65 </a>
+                </p>
+                <p>
+                    We welcome any comments and/or suggestions that you may have regarding our software and server - please send an email directly to fathmm@biocompute.org.uk
+                </p>
             </footer>
         </div>
         
@@ -295,11 +304,6 @@ rs17882252
             $("#eg-tab").click(function() {
                 $('#myForm')[0].reset();
                 document.forms['myForm'].elements['batch'].value = "P43026 L441P\nENSP00000269305 E258A,R280G,G302E";
-            });
-            $("#show_documentation").click(function() {
-                $('#new-tab').removeClass('active');
-                $('#eg-tab').removeClass('active');
-                $('#doc-tab').addClass('active');      
             });
         </script>
         

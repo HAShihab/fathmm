@@ -45,6 +45,7 @@
     </head>
 
     <body>
+        <a id="top"></a>
         <div class="container">
             <div class="navbar navbar-fixed-top">
                 <div class="navbar-inner">
@@ -83,143 +84,102 @@
                     Obtain instant predictions for the functional, molecular and phenotypic consequences of protein missense 
                     variants.
                 </p>
-                <p>
-                    <a href="#info" role="button" data-toggle="modal" class="btn btn-primary btn-large pull-right">Example &raquo;</a>
-                </p>
             </div>
             
-            <div id="info" class="modal hide fade" tabindex="-1" role="dialog" aria-labelledby="head" aria-hidden="true">
-                <div class="modal-header">
-                    <h3 id="head">Submission Information:</h3>
-                </div>
-                <div class="modal-body">
-                    <p>
-                        A combination of the below is accepted/valid input:
-                        <br />
-                        <ul>
-                            <li>Human dbSNP rs IDs (dbSNP 137) - multiple SNPs should be entered on separate lines.
-                            </li>
-                            <li>
-                                Human SwissProt/TrEMBL and/or Ensembl protein identifiers followed by the amino 
-                                acid substitution in the conventional one letter format - multiple substitutions 
-                                can be entered on a single line and should be separated by a comma.
-                            </li>
-                        </ul>
-                        <b>Example Submission:</b>
-                        <br />
-                        <br />
-                        rs137854462
-                        <br />
-                        rs28936683
-                        <br />
-                        rs121908258
-                        <br />
-                        rs17132395
-                        <br />
-                        rs121912297
-                        <br />
-                        P43026 L441P
-                        <br />
-                        P35555 N548I,E1073K,C2307S 
-                        <br />
-                    </p>
-                </div>
-                <div class="modal-footer">
-                    <button class="btn" data-dismiss="modal" aria-hidden="true">Close</button>
-                </div>
-            </div>
-            
-            <div class="row">
-                <div class="span12">
-                    <form class="form-horizontal" id="myForm" name="myForm" action="./cgi-bin/results.cgi" method="post" enctype="multipart/form-data">
-                        <legend><h3>Enter Your Mutations:</h3></legend>
-                        
-                        <input type="hidden" name="threshold" id="threshold" value="">
-                        
-                        <div class="row-fluid">
-                            <div class="span12">
-                                <div class="well well-large">
-                                    <div class="row-fluid">
-                                        <div class="span11">
+            <ul class="nav nav-tabs" id="myTab">
+                <li id="new-tab" class="active">
+                    <a href="#new" onclick="javascript: remove();" data-toggle="tab">New Submission</a>
+                </li>
+                <li id="eg-tab">
+                    <a href="#new" onclick="javascript: put();" data-toggle="tab">Use Example</a>
+                </li>
+                <li id="doc-tab">
+                    <a href="#documentation" data-toggle="tab">Help/Documentation</a>
+                </li>
+            </ul>
+
+            <div class="tab-content">
+                <div class="tab-pane active" id="new">
+                    <div class="row">
+                        <div class="span12">
+                            <form class="form-horizontal" id="myForm" name="myForm" action="./cgi-bin/results.cgi" method="post" enctype="multipart/form-data">
+                                <legend><h3>Enter Your Mutations:</h3></legend>
+                                
+                                <input type="hidden" name="threshold" id="threshold" value="">
+                                
+                                <div class="row-fluid">
+                                    <div class="span12">
+                                        <div class="well well-large">
                                             <div class="row-fluid">
-                                                <div class="span7">
-                                                    <div class="control-group">
-                                                        <label class="control-label" for="batch">User Input</label>
-                                                        <div class="controls">
-                                                            <textarea id="batch" name="batch" type="text" class="span12" style="resize: none;" rows="8"></textarea>
-                                                        </div>
-                                                    </div>  
-                                                </div>
-                                                <div class="help-inline span5">
-                                                    
-                                                    
+                                                <div class="span11">
                                                     <div class="row-fluid">
-                                                        <div class="span12">
+                                                        <div class="span7">
+                                                            <div class="control-group">
+                                                                <label class="control-label" for="batch">User Input</label>
+                                                                <div class="controls">
+                                                                    <textarea id="batch" name="batch" type="text" class="span11" style="resize: none;" rows="5"></textarea>
+                                                                    <a href="#documentation" data-toggle="tab" class="icon-question-sign" onclick="javascript: $('#new-tab').removeClass('active'); $('#eg-tab').removeClass('active'); $('#doc-tab').addClass('active');"></a>
+                                                                </div>
+                                                            </div>  
+                                                        </div>
+                                                        <div class="help-inline span5">
+                                                            
                                                             <div class="row-fluid">
                                                                 <div class="span12">
-                                                                    <div class="control-group">
-                                                                        <label class="control-label" for="weighted">Prediction Algorithm</label>
-                                                                        <div class="controls">
-                                                                            <select id="weighted" name="weighted" class="span12">
-                                                                                <option value="INHERITED" selected>Weighted</option>
-                                                                                <option value="UNWEIGHTED">Unweighted</option>
-                                                                            </select>
+                                                                    <div class="row-fluid">
+                                                                        <div class="span12">
+                                                                            <div class="control-group">
+                                                                                <label class="control-label" for="weighted">Prediction Algorithm</label>
+                                                                                <div class="controls">
+                                                                                    <select id="weighted" name="weighted" class="span11">
+                                                                                        <option value="INHERITED" selected>Weighted</option>
+                                                                                        <option value="UNWEIGHTED">Unweighted</option>
+                                                                                    </select>
+                                                                                    <a href="#documentation" data-toggle="tab" class="icon-question-sign" onclick="javascript: $('#new-tab').removeClass('active'); $('#eg-tab').removeClass('active'); $('#doc-tab').addClass('active');"></a>
+                                                                                </div>
+                                                                            </div>  
                                                                         </div>
-                                                                    </div>  
+                                                                    </div>
                                                                 </div>
                                                             </div>
-                                                        </div>
-                                                    </div>
-                                                    <div class="row-fluid">
-                                                        <div class="span12">
                                                             <div class="row-fluid">
                                                                 <div class="span12">
-                                                                    <div class="control-group">
-                                                                        <label class="control-label" for="phenotypes">Phenotypic Associations</label>
-                                                                        <div class="controls">
-                                                                            <select id="phenotypes" name="phenotypes" class="span12">
-                                                                                <option value="DO" selected>Disease Ontology</option>
-                                                                                <option value="GO">Gene Ontology</option>
-                                                                                <option value="HP">Human Phenotype Ontology</option>
-                                                                                <option value="MP">Mouse Phenotype Ontology</option>
-                                                                                <option value="WP">Worm Phenotype Ontology</option>
-                                                                                <option value="YP">Yeast Phenotype Ontology</option>
-                                                                                <option value="FP">Fly Phenotype Ontology</option>
-                                                                                <option value="FA">Fly Anatomy Ontology</option>
-                                                                                <option value="ZA">Zebrafish Anatomy Ontology</option>
-                                                                                <option value="AP">Arabidopsis Plant Ontology</option>
-                                                                                <option value="KW">UniProtKB KeyWords</option>
-                                                                            </select>
+                                                                    <div class="row-fluid">
+                                                                        <div class="span12">
+                                                                            <div class="control-group">
+                                                                                <label class="control-label" for="phenotypes">Phenotypic Associations</label>
+                                                                                <div class="controls">
+                                                                                    <select id="phenotypes" name="phenotypes" class="span11">
+                                                                                        <option value="DO" selected>Disease Ontology</option>
+                                                                                        <option value="GO">Gene Ontology</option>
+                                                                                        <option value="HP">Human Phenotype Ontology</option>
+                                                                                        <option value="MP">Mouse Phenotype Ontology</option>
+                                                                                        <option value="WP">Worm Phenotype Ontology</option>
+                                                                                        <option value="YP">Yeast Phenotype Ontology</option>
+                                                                                        <option value="FP">Fly Phenotype Ontology</option>
+                                                                                        <option value="FA">Fly Anatomy Ontology</option>
+                                                                                        <option value="ZA">Zebrafish Anatomy Ontology</option>
+                                                                                        <option value="AP">Arabidopsis Plant Ontology</option>
+                                                                                        <option value="KW">UniProtKB KeyWords</option>
+                                                                                    </select>
+                                                                                    <a href="#documentation" data-toggle="tab" class="icon-question-sign" onclick="javascript: $('#new-tab').removeClass('active'); $('#eg-tab').removeClass('active'); $('#doc-tab').addClass('active');"></a>
+                                                                                </div>
+                                                                            </div>  
                                                                         </div>
-                                                                    </div>  
+                                                                    </div>
                                                                 </div>
                                                             </div>
-                                                        </div>
-                                                    </div>
-<!--
-                                                    <div class="row-fluid">
-                                                        <div class="span12">
+                                                            
                                                             <div class="row-fluid">
                                                                 <div class="span12">
-                                                                    <div class="control-group">
-                                                                        <label class="control-label" for="phenotypes">Prediction Threshold</label>
-                                                                        <div class="controls">
-                                                                            <input id="threshold" name="threshold" type="text" class="span12" value="0.75">
-                                                                        </div>
-                                                                    </div>  
-                                                                </div>
-                                                            </div>
-                                                        </div>
-                                                    </div>
--->
-                                                    <div class="row-fluid">
-                                                        <div class="span12">
-                                                            <div class="row-fluid">
-                                                                <div class="span12">
-                                                                    <div class="control-group pull-right">
-                                                                        <div class="controls">
-                                                                        <button type="reset" class="btn">Clear</button>
-                                                                        <button type="submit" class="btn">Submit</button>
+                                                                    <div class="row-fluid">
+                                                                        <div class="span12">
+                                                                            <div class="control-group pull-right">
+                                                                                <div class="controls">
+                                                                                <button type="reset" class="btn">Clear</button>
+                                                                                <button type="submit" class="btn">Submit</button>
+                                                                                </div>
+                                                                            </div>
                                                                         </div>
                                                                     </div>
                                                                 </div>
@@ -230,24 +190,162 @@
                                             </div>
                                         </div>
                                     </div>
-                                </div>
-                            </div>
-                        </div>      
-                    </form>
+                                </div>      
+                            </form>
+                        </div>
+                    </div>
+                </div>
+                <div class="tab-pane" id="documentation">
+                    <div class="row">
+                        <div class="span3" id="navparent">
+                            <ul class="nav nav-list navex">
+                                <li><a href="#overview"><i class="icon-chevron-right"></i> Overview</a></li>
+                                <li><a href="#format"><i class="icon-chevron-right"></i> Input Format</a></li>
+                                <li><a href="#algorithm"><i class="icon-chevron-right"></i> Prediction Algorithm</a></li>
+                                <li><a href="#phenotype"><i class="icon-chevron-right"></i> Phenotypic Associations</a></li>
+                                <li><a href="#vcf"><i class="icon-chevron-right"></i> Annotating VCF's</a></li>
+                            </ul>
+                        </div>
+                        <div class="span9">
+                            <section id="overview">
+                                <h1>Overview:</h1>
+                                <br />
+                                <p>
+                                    Our algorithm is capable of predicting the functional effects of cancer-associated protein missense mutations by combining
+                                    sequence conservation within hidden Markov models (HMMs), representing the alignment of homologous sequences and conserved 
+                                    protein domains, with "pathogenicity weights", representing the overall tolerance of the corresponding model to mutations.
+                                    <br /><br />
+                                    For more information, please refer to the following publication:
+                                    <br /><br />
+                                    Shihab HA, Gough J, Cooper DN, Stenson PD, Barker GLA, Edwards KJ, Day INM, Gaunt, TR. (2013). Predicting the Functional, Molecular and Phenotypic
+                                    Consequences of Amino Acid Substitutions using Hidden Markov Models. <i>Hum. Mutat.</i>, <b>34</b>, 57-65
+                                    <a href="http://www.ncbi.nlm.nih.gov/pubmed/23033316"><img src="./img/pubmed.png" alt="fathmm Paper"></a>
+                                </p>
+                                <a href='./inherited.html#top'>Back to top ...</a>
+                            </section>
+                            <br />
+                            <section id="format">
+                                <h1>Input Format:</h1>
+                                <br />
+                                <p>
+                                Our server accepts one of the following formats (see <a href="./cancer.html#vcf">here</a> for annotating VCF files):
+                                
+                                <br /><br />
+                                <ul>
+                                    <li>
+                                        <code>&lt;protein&gt; &lt;substitution&gt;</code>
+                                    </li>
+                                </ul>
+                                <br />
+                                Where <code>&lt;protein&gt;</code> is the protein identifier and <code>&lt;substitution&gt;</code> is the amino acid substitution in the conventional one 
+                                letter format.  At present, our server accepts SwissProt/TrEMBL and Ensembl protein identifiers - multiple amino acid substitutions 
+                                can be entered on a single line and should be separated by a comma, e.g:
+                                <br /><br />
+<pre>
+P43026 L441P
+ENSP00000325527 N548I,E1073K,C2307S 
+</pre>
+                                <br />
+                                <ul>
+                                    <li>
+                                        <code>dbSNP rs identifiers</code>
+                                    </li>
+                                </ul>
+                                <br />
+                                At present, our server accepts dbSNP v.137 annotations (we are working towards incorporating other versions of dbSNP into our database) - multiple dbSNP 
+                                identifiers should be entered on separate lines, e.g.:
+                                <br /><br />  
+<pre>
+rs137854462
+rs28936683
+rs121908258
+rs17882252
+</pre>
+
+                                </p>
+                                <a href='./inherited.html#top'>Back to top ...</a>
+                            </section>
+                            <br />
+                            <section id="algorithm">
+                                <h1>Prediction Algorithm:</h1>
+                                <br />
+                                <p>
+                                As described in our paper, our software is comprised of two algorithms: one sequence/conservation based (Unweighted) and the other 
+                                amalgamates our Unweighted algorithm with pathogenicity weights (Weighted).  In short, our Weighted algorithm is capable of adjusting 
+                                our predictions to account for the tolerance of related sequences to mutations.  For example, mutations falling within 
+                                diverse regions of the Cellular Tumor Antigen P53 can be weighted according to the important role the protein plays in cell regulation.  
+                                In contrast, mutations falling within conserved regions of the MHC Antigen-Regognition Domain can be down-weighted according the 
+                                hypervariable nature of the domain.
+                                </p>
+                                <a href='./inherited.html#top'>Back to top ...</a>
+                            </section>
+                            
+                            <br />
+                            <section id="phenotype">
+                                <h1>Phenotype Associations:</h1>
+                                <br />
+                                <p>
+                                Our software not only predicts the potentially deleterious nature of protein variants but it is also capable of annotating
+                                the molecular and phenotypic consequences of these mutations via domain-centric ontologies (<a href="http://supfam.org/SUPERFAMILY/dcGO/"><b>dcGO</b></a>). 
+                                Here, the molecular consequences of mutations are statistically inferred by mapping <a href="http://supfam.cs.bris.ac.uk/SUPERFAMILY/"><b>SUPERFAMILY</b></a>
+                                domains onto the Gene Ontology, the Human Phenotype Ontology and the Mammalian Phenotype Ontology (and more).
+                                <br /><br />
+                                For more information on these mappings, please refer to the following publications:
+                                <br /><br />
+                                Fang H, Gough J. (2012). dcGO: database of domain-centric ontologies on functions, phenotypes, diseases and more. <i>Nucleic Acids Res.</i>, <b>41</b>, D536-544.
+                                <br /><br />
+                                Gough J, Karplus K, Hughey R, Chothia C. (2001). Assignment of homology to genome sequences using a library of hidden Markov models that represent all proteins of known structure. <i>J. Mol. Biol.</i>, <b>313</b>, 903-919.
+                                </p> 
+                                <a href='./inherited.html#top'>Back to top ...</a>
+                            </section>
+                            
+                            <br />
+                            <section id="vcf">
+                                <h1>VCF Annotation:</h1>
+                                <br />
+                                <p>
+                                Unfortunately, due to disk space constraints, we are unable to annotate Variant Call Format (VCF) files on your behalf.  However, the consequences of all VCF variants 
+                                can be derived using the <b><a href="http://www.ensembl.org/info/docs/variation/vep/index.html">Ensembl Variant Effect Predictor (VEP)</a></b>.
+                                Once annotated, the following script <b><a href="./parseVCF.py">(available here)</a></b> is capable of parsing these annotations and will provide you with a list of protein 
+                                consequences which can then be used as input into our server/software.  
+                                <br /><br />
+                                Additional help on using our script is available by typing the following command:
+                                <pre>python parseVCF.py --help</pre>
+                                              
+                                </p> 
+                                <a href='./inherited.html#top'>Back to top ...</a>
+                            </section>
+                            
+                        </div>
+                    </div>
                 </div>
             </div>
             
             <hr>
             <footer>
-            <p>
-            We welcome any comments and/or suggestions that you may have regarding our software and server - please send an email directly to fathmm@biocompute.org.uk
-            </p>
+                <p>
+                    If you have found this resource useful, please cite the following work:
+                    <br />
+                    <a href="http://www.ncbi.nlm.nih.gov/pubmed/23033316">Shihab HA, Gough J, Cooper DN, Stenson PD, Barker GLA, Edwards KJ, Day INM, Gaunt, TR. (2013). Predicting the Functional, Molecular and Phenotypic Consequences of Amino Acid Substitutions using Hidden Markov Models. Hum. Mutat., <b>34</b>, 57-65 </a>
+                </p>
+                <p>
+                    We welcome any comments and/or suggestions that you may have regarding our software and server - please send an email directly to fathmm@biocompute.org.uk
+                </p>
             </footer>
-            
         </div>
         
         <script type="text/javascript" src="./js/bootstrap.min.js"></script>
         <script type="text/javascript" src="./js/jquery.min.js"></script>
+        
+        <script type="text/javascript">
+            $("#new-tab").click(function() {
+                $('#myForm')[0].reset();
+            });
+            $("#eg-tab").click(function() {
+                $('#myForm')[0].reset();
+                document.forms['myForm'].elements['batch'].value = "P43026 L441P\nENSP00000269305 E258A,R280G,G302E";
+            });
+        </script>
         
     </body>
 </html>
