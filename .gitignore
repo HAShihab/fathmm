@@ -4,3 +4,6 @@
 # Server Submission(s)
 *.txt
 *.tab
+
+# Benchmarking
+benchmark/

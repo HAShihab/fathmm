@@ -211,7 +211,7 @@
                                 <h1>Overview:</h1>
                                 <br />
                                 <p>
-                                    Our algorithm is capable of predicting the functional effects of cancer-associated protein missense mutations by combining
+                                    Our algorithm is capable of predicting the functional effects of protein missense mutations by combining
                                     sequence conservation within hidden Markov models (HMMs), representing the alignment of homologous sequences and conserved 
                                     protein domains, with "pathogenicity weights", representing the overall tolerance of the corresponding model to mutations.
                                     <br /><br />
@@ -272,8 +272,8 @@ rs17882252
                                 <p>
                                 As described in our paper, our software is comprised of two algorithms: one sequence/conservation based (Unweighted) and the other 
                                 amalgamates our Unweighted algorithm with pathogenicity weights (Weighted).  In short, our Weighted algorithm is capable of adjusting 
-                                our predictions to account for the tolerance of related sequences to mutations.  For example, mutations falling within 
-                                diverse regions of the Cellular Tumor Antigen P53 can be weighted according to the important role the protein plays in cell regulation.  
+                                our conservation-based predictions to account for the tolerance of related sequences to mutations.  For example, mutations falling within 
+                                diverse regions of the Cellular Tumor Antigen P53 can be up-weighted according to the critical role the protein plays in cell regulation.  
                                 In contrast, mutations falling within conserved regions of the MHC Antigen-Regognition Domain can be down-weighted according the 
                                 hypervariable nature of the domain.
                                 </p>

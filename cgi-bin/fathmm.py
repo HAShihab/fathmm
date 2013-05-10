@@ -19,16 +19,16 @@ def map_position(domain, substitution):
     
     # return if the amino acid substitution falls outside of the domain 
     # assignment 
-    if int(substitution[1:-1]) < int(domain['seq_start']) or \
+    if int(substitution[1:-1]) < int(domain['seq_begin']) or \
        int(substitution[1:-1]) > int(domain['seq_end']):
         return None
     
     # adjust the sequence/HMM position (Python has zero-based coordinates)
-    x = int(domain['seq_start']) - 1 
-    y = int(domain['hmm_start']) - 1 
+    x = int(domain['seq_begin']) - 1 
+    y = int(domain['hmm_begin']) - 1 
     
     # map amino acid substitution onto the HMM
-    for residue in list(domain['alignment']):
+    for residue in list(domain['align']):
         if residue.isupper() or residue.islower():
             # upper-case (match)/lower-case (insertion) characters map 
             # onto a sequence residue
@@ -67,21 +67,21 @@ def fetch_prediction(facade, substitution):
             else:
                 # derive a "Weighted" prediction depending on the selected
                 # pathogenicity weights ...
-                dbCursor.execute("select * from Weights where id='" + x['id'] + "' and type='" + options.weights + "'")
+                dbCursor.execute("select * from WEIGHTS where id='" + x['id'] + "' and type='" + options.weights + "'")
                 Weights   = dbCursor.fetchone()
 
                 if Weights:
                     p     = x[substitution[0]]
                     q     = x[substitution[-1]]
-                    r     = Weights['polymorphic']
-                    s     = Weights['pathogenic']
+                    r     = Weights['other']
+                    s     = Weights['disease']
                     
                     Score = "%.2f" % math.log(((1.0 - p) * (r + 1.0)) / ((1.0 - q) * (s + 1.0)), 2)
         
         # derive domain-phenotype associations (via the most informative
         # SUPERFAMILY HMM)
         if not Phenotypes and x['accession']:
-            dbCursor.execute("select * from Phenotypes where accession='" + x['accession'] + "' and ontology='" + options.phenotypes + "' and origin=1 order by score")
+            dbCursor.execute("select * from PHENOTYPES where accession='" + x['accession'] + "' and type='" + options.phenotypes + "' and origin=1 order by score")
             Phenotypes = dbCursor.fetchall()
             
         if Score and Phenotypes:
@@ -104,7 +104,7 @@ def process_record(dbSNP, protein, substitution):
     
     
     # fetch pre-computed sequence record
-    dbCursor.execute("select a.* from Clusters a, Protein b where a.id=b.cluster and b.name='" + protein + "'")
+    dbCursor.execute("select a.* from SEQUENCE a, PROTEIN b where a.id=b.id and b.name='" + protein + "'")
     SeqRecord = dbCursor.fetchone()
     
     if not SeqRecord:
@@ -138,7 +138,7 @@ def process_record(dbSNP, protein, substitution):
     Facade    = []
     
     # fetch substitution-harbouring protein domains
-    dbCursor.execute("select * from Domains where id='" + SeqRecord['id'] + "' and " + substitution[1:-1] + " between seq_start and seq_end order by evalue")
+    dbCursor.execute("select * from DOMAINS where id='" + str(SeqRecord['id']) + "' and " + substitution[1:-1] + " between seq_begin and seq_end order by score")
     DomRecord = dbCursor.fetchall()
     
     for x in DomRecord:
@@ -147,7 +147,7 @@ def process_record(dbSNP, protein, substitution):
             
         if residue:
             # fetch description/probabilities for mapped position
-            dbCursor.execute("select a.*, b.accession, b.description from Probabilities a, Library b where a.id=b.id and a.id='" + str(x['hmm']) + "' and a.position='" + residue + "'")
+            dbCursor.execute("select a.*, b.accession, b.description from PROBABILITIES a, LIBRARY b where a.id=b.id and a.id='" + str(x['hmm']) + "' and a.position='" + residue + "'")
             dbRecord = dbCursor.fetchone()
             
             if dbRecord:
@@ -157,7 +157,7 @@ def process_record(dbSNP, protein, substitution):
     # derive a prediction based on the most informative HMM
     if options.weights.upper() == "UNWEIGHTED":
         # if "Unweighted" prediction", append JackHMMER probabilities/conservation ...
-        dbCursor.execute("select a.*, b.accession, b.description from Probabilities a, Library b where a.id=b.id and a.id='" + SeqRecord['id'] + "' and a.position='" + substitution[1:-1] + "'")
+        dbCursor.execute("select a.*, b.accession, b.description from PROBABILITIES a, LIBRARY b where a.id=b.id and a.id='" + str(SeqRecord['id']) + "' and a.position='" + substitution[1:-1] + "'")
         ConRecord = dbCursor.fetchone()
         
         if ConRecord:
@@ -174,7 +174,7 @@ def process_record(dbSNP, protein, substitution):
         
         if not Score:
             # append JackHMMER probabilities/conservation
-            dbCursor.execute("select a.*, b.accession, b.description from Probabilities a, Library b where a.id=b.id and a.id='" + SeqRecord['id'] + "' and a.position='" + substitution[1:-1] + "'")
+            dbCursor.execute("select a.*, b.accession, b.description from PROBABILITIES a, LIBRARY b where a.id=b.id and a.id='" + str(SeqRecord['id']) + "' and a.position='" + substitution[1:-1] + "'")
             ConRecord = dbCursor.fetchone()
             
             if ConRecord:
@@ -320,7 +320,7 @@ if __name__ == '__main__':
                 # dbSNP record ...
                 if re.compile("^rs\d+$", re.IGNORECASE).match(record):
                     # ... fetch protein consequence(s)
-                    dbCursor.execute("select distinct * from Variants where id='" + record + "'")
+                    dbCursor.execute("select distinct * from VARIANTS where id='" + record + "'")
                     dbRecords = dbCursor.fetchall()
                     
                     if not dbRecords:

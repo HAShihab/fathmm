@@ -87,9 +87,6 @@ AP : Arabidopsis Plant Ontology
 KW : UniProtKB KeyWords
 ```
 
-## Known Issues:
-
-* Using database v2.0, our predictions appear to be derived/written slower than previous version(s) of our 
-software - this has now been resolved in database v2.1 (missing index).
+## Contributing:
 
 We welcome any comments and/or suggestions that you may have regarding our software and server - please send an email directly to fathmm@biocompute.org.uk
