@@ -10,5 +10,5 @@ Functional Analysis through Hidden Markov Models software and server
 * We now use the Representative Proteome (RP) database when searching for homologous sequences.
 * We now incorporate Pfam 27.0 into our domain-based predictions.
 * Human: added support for ENSEMBL 71, UniProt 2013_05, and RefSeq 59.
-* Cow: added support for ENSEMBL v71
-* We have fixed a minor database bug
+* Cow: added support for ENSEMBL v71.
+* We have fixed a minor database bug.
