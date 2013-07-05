@@ -1,363 +1,477 @@
 #!/usr/bin/python -u
 
-import os
 import re
 import math
+import argparse
 import ConfigParser
 
 import MySQLdb
 import MySQLdb.cursors
 
-from optparse import OptionParser, SUPPRESS_HELP
-
 #
 def map_position(domain, substitution):
     """
-    return the corresponding position within a HMM (for a given amino 
-    acid position)
     """
     
-    # return if the amino acid substitution falls outside of the domain 
-    # assignment 
     if int(substitution[1:-1]) < int(domain['seq_begin']) or \
        int(substitution[1:-1]) > int(domain['seq_end']):
-        return None
+           return None
     
-    # adjust the sequence/HMM position (Python has zero-based coordinates)
     x = int(domain['seq_begin']) - 1 
     y = int(domain['hmm_begin']) - 1 
     
-    # map amino acid substitution onto the HMM
     for residue in list(domain['align']):
         if residue.isupper() or residue.islower():
-            # upper-case (match)/lower-case (insertion) characters map 
-            # onto a sequence residue
+            # upper-case (match)/lower-case (insertion) characters correspond 
+            # to a sequence residue
             x += 1
         if residue.isupper() or residue == "-":
-            # upper-case (match)/gap (deletion) characters map onto a
-            # HMM position
+            # upper-case (match)/gap (deletion) characters correspond to
+            # a HMM position
             y += 1
         if x == int(substitution[1:-1]):
             if residue.isupper():
-                # return corresponding position within the HMM
                 return str(y)
             # unmapped residue (i.e. insertion)
             return None
     return None
 
 #
-def fetch_prediction(facade, substitution):
+def fetch_phenotype_prediction(Facade, Phenotype):
     """
-    return a prediction score, according to the requested algorithm, 
-    alongside domain-phenotype associations
     """
     
-    Score      = None
-    Phenotypes = []
+    Phenotypes = ""
     
-    # use the most informative Facade record ...
-    for x in sorted(facade, key=lambda x:x['information'], reverse=True):
-        if not Score:
-            if options.weights.upper() == "UNWEIGHTED":
-                # derive an "Unweighted Prediction" ...
-                p     = x[substitution[0]]
-                q     = x[substitution[-1]]
-                
-                Score = "%.2f" % math.log((q / (1.0 - q)) / (p / (1.0 - p)), 2)
-            else:
-                # derive a "Weighted" prediction depending on the selected
-                # pathogenicity weights ...
-                dbCursor.execute("select * from WEIGHTS where id='" + x['id'] + "' and type='" + options.weights + "'")
-                Weights   = dbCursor.fetchone()
+    if not Arg.phenotypes:
+        return Phenotypes
+    
+    for x in sorted(Facade, key=lambda x:x['information'], reverse=True):
+        # use the most informative HMM
+        if x['accession']:
+            dbCursor.execute("select * from PHENOTYPES where accession='" + x['accession'] + "' and type='" + Phenotype + "' and origin=1 order by score")
+            Phenotypes = "|".join([ x['description'] for x in dbCursor.fetchall() ])
+            
+            if Phenotypes:
+                break
+    
+    return Phenotypes
 
-                if Weights:
-                    p     = x[substitution[0]]
-                    q     = x[substitution[-1]]
-                    r     = Weights['other']
-                    s     = Weights['disease']
-                    
-                    Score = "%.2f" % math.log(((1.0 - p) * (r + 1.0)) / ((1.0 - q) * (s + 1.0)), 2)
-        
-        # derive domain-phenotype associations (via the most informative
-        # SUPERFAMILY HMM)
-        if not Phenotypes and x['accession']:
-            dbCursor.execute("select * from PHENOTYPES where accession='" + x['accession'] + "' and type='" + options.phenotypes + "' and origin=1 order by score")
-            Phenotypes = dbCursor.fetchall()
-            
-        if Score and Phenotypes:
-            # prediction(s) have been made ...
-            break
-    
-    return (Score, Phenotypes)
-            
 #
-def process_record(dbSNP, protein, substitution):
+def Process(Protein, Substitution, Weights=None, Cutoff=None, Phenotype=None):
+    """
     """
     
-    """
-    
-    # throw warning if prediction threshold is invalid
-    if not isinstance(options.threshold, float):
-        Predictions.write(
-            "\t".join([ str(idx), dbSNP, protein, substitution, "", "", "", "Invalid Prediction Threshold (" + str(options.threshold) + ")" ]) + "\n"
-        ); return False
-    
+    Processed = {
+                 'Prediction' : "",
+                 'Score':       "",       
+                 'Phenotype':   "",
+                 'HMM':         "",
+                 'Description': "",
+                 'Position':    "",
+                 'W':           "",
+                 'M':           "",
+                 'D':           "",
+                 'O':           "",
+                 'Warning':     "",
+                }
     
     # fetch pre-computed sequence record
-    dbCursor.execute("select a.* from SEQUENCE a, PROTEIN b where a.id=b.id and b.name='" + protein + "'")
-    SeqRecord = dbCursor.fetchone()
+    dbCursor.execute("select a.* from SEQUENCE a, PROTEIN b where a.id=b.id and b.name='" + Protein + "'")
+    Sequence = dbCursor.fetchone()
     
-    if not SeqRecord:
-        # no pre-computed sequence record
-        Predictions.write(
-            "\t".join([ str(idx), dbSNP, protein, substitution, "", "", "", "No Sequence Record Found" ]) + "\n"
-        ); return False
+    if not Sequence:
+        Processed['Warning'] = "No Sequence Record Found"
+        
+        return Processed
     
     # authenticate protein/substitution
     Warning     = None
-    
-    if not Warning and not re.compile("^[ARNDCEQGHILKMFPSTWYV]\d+[ARNDCEQGHILKMFPSTWYV]$", re.IGNORECASE).match(substitution):
-        # authenticate substitution format
+    if not Warning and not re.compile("^[ARNDCEQGHILKMFPSTWYV]\d+[ARNDCEQGHILKMFPSTWYV]$", re.IGNORECASE).match(Substitution):
         Warning = "Invalid Substitution Format"
-    if not Warning and int(substitution[1:-1]) > SeqRecord['sequence'].__len__():
-        # authenticate substitution position
+    if not Warning and int(Substitution[1:-1]) > len(Sequence['sequence']):
         Warning = "Invalid Substitution Position"
-    if not Warning and not substitution[0] == SeqRecord['sequence'][int(substitution[1:-1]) - 1]:
-        # authenticate substitution residue(s)
-        Warning = "Inconsistent Wild-Type Residue (Expected '" + SeqRecord['sequence'][int(substitution[1:-1]) - 1] + "')"
-    if not Warning and substitution[0] == substitution[-1]:
-        # authenticate substitution type
+    if not Warning and not Substitution[0] == Sequence['sequence'][int(Substitution[1:-1]) - 1]:
+        Warning = "Inconsistent Wild-Type Residue (Expected '" + Sequence['sequence'][int(Substitution[1:-1]) - 1] + "')"
+    if not Warning and Substitution[0] == Substitution[-1]:
         Warning = "Synonymous Mutation"
-    if  Warning:
-        # return the corresponding warning
-        Predictions.write(
-            "\t".join([ str(idx), dbSNP, protein, substitution, "", "", "", Warning ]) + "\n"
-        ); return False
+        
+    if Warning:
+        Processed['Warning'] = Warning
+        
+        return Processed
     
-    # create a facade of possible prediction(s)
-    Facade    = []
+    # fetch pre-computed domain assignment(s)
+    dbCursor.execute("select * from DOMAINS where id='" + str(Sequence['id']) + "' and " + Substitution[1:-1] + " between seq_begin and seq_end order by score")
+    Domain = dbCursor.fetchall()
     
-    # fetch substitution-harbouring protein domains
-    dbCursor.execute("select * from DOMAINS where id='" + str(SeqRecord['id']) + "' and " + substitution[1:-1] + " between seq_begin and seq_end order by score")
-    DomRecord = dbCursor.fetchall()
+    Facade = []
     
-    for x in DomRecord:
-        # fetch the corresponding position within the HMMs
-        residue = map_position(x, substitution)
-            
+    for x in Domain:
+        residue = map_position(x, Substitution)
+        
         if residue:
-            # fetch description/probabilities for mapped position
-            dbCursor.execute("select a.*, b.accession, b.description from PROBABILITIES a, LIBRARY b where a.id=b.id and a.id='" + str(x['hmm']) + "' and a.position='" + residue + "'")
-            dbRecord = dbCursor.fetchone()
+            dbCursor.execute("select a.*, b.* from PROBABILITIES a, LIBRARY b where a.id=b.id and a.id='" + str(x['hmm']) + "' and a.position='" + residue + "'")
+            Prob = dbCursor.fetchone()
             
-            if dbRecord:
-                # append as a possible prediction
-                Facade.append(dbRecord)
+            if Prob:
+                Facade.append(Prob)
     
-    # derive a prediction based on the most informative HMM
-    if options.weights.upper() == "UNWEIGHTED":
-        # if "Unweighted" prediction", append JackHMMER probabilities/conservation ...
-        dbCursor.execute("select a.*, b.accession, b.description from PROBABILITIES a, LIBRARY b where a.id=b.id and a.id='" + str(SeqRecord['id']) + "' and a.position='" + substitution[1:-1] + "'")
-        ConRecord = dbCursor.fetchone()
+    #
+    
+    # fetch phenotype association(s)
+    if Phenotype:
+        Processed['Phenotype'] = fetch_phenotype_prediction(Facade, Phenotype)
+    
+    # derive/return a prediction ...
+    if not Weights or Weights == "UNWEIGHTED":
+        # append non-domain-based/sequence conservation to the Facade
+        dbCursor.execute("select a.*, b.*  from PROBABILITIES a, LIBRARY b where a.id=b.id and a.id='" + str(Sequence['id']) + "' and a.position='" + Substitution[1:-1] + "'")
+        Prob = dbCursor.fetchone()
         
-        if ConRecord:
-            # append as a possible prediction
-            Facade.append(ConRecord)
+        if Prob:
+            Facade.append(Prob)
         
-        # fetch prediction(s) ...
-        (Score, Phenotypes) = fetch_prediction(Facade, substitution)
+        for x in sorted(Facade, key=lambda x:x['information'], reverse=True):
+            try:
+                Processed['HMM']         = x['id']
+                Processed['Description'] = x['description']
+                Processed['Position']    = x['position']
+                Processed['W']           = x[Substitution[0]]
+                Processed['M']           = x[Substitution[-1]]
+                Processed['D']           = ""
+                Processed['O']           = ""
+                
+                Processed['Score']       = "%.2f" % math.log((Processed['M'] / (1.0 - Processed['M'])) / (Processed['W'] / (1.0 - Processed['W'])), 2)
+
+                Processed['Prediction']  = ""                
+                if Cutoff:
+                    if float(Processed['Score']) <= Cutoff: Processed['Prediction'] = "DAMAGING"
+                    if float(Processed['Score']) >  Cutoff: Processed['Prediction'] = "TOLERATED"
+                
+                return Processed
+            except Exception, e:
+                # skip the rare occasion(s) when probabilities are zero
+                pass
     else:
-        # ... otherwise, prioritize domain-centric predictions i.e. use 
-        # JackHMMER probabilities/conservation when no domain-centric 
-        # predictions have been made
-        (Score, Phenotypes) = fetch_prediction(Facade, substitution)
+        # prioritize domain-based predictions
+        for x in sorted(Facade, key=lambda x:x['information'], reverse=True):
+            try:
+                dbCursor.execute("select * from WEIGHTS where id='" + x['id'] + "' and type='" + Weights + "'")
+                w = \
+                    dbCursor.fetchone()
+                
+                if w:
+                    Processed['HMM']         = x['id']
+                    Processed['Description'] = x['description']
+                    Processed['Position']    = x['position']
+                    Processed['W']           = x[Substitution[0]]
+                    Processed['M']           = x[Substitution[-1]]
+                    Processed['D']           = w['disease'] + 1.0
+                    Processed['O']           = w['other'] + 1.0
+                    
+                    Processed['Score']       = "%.2f" % math.log(((1.0 - Processed['W']) * Processed['O']) / ((1.0 - Processed['M']) * Processed['D']), 2)
+
+                    Processed['Prediction']  = ""                
+                    if Cutoff:
+                        if Weights == "INHERITED":
+                            if float(Processed['Score']) <= Cutoff: Processed['Prediction'] = "DAMAGING"
+                            if float(Processed['Score']) >  Cutoff: Processed['Prediction'] = "TOLERATED"
+                        
+                        if Weights == "CANCER":
+                            if float(Processed['Score']) <= Cutoff: Processed['Prediction'] = "CANCER"
+                            if float(Processed['Score']) >  Cutoff: Processed['Prediction'] = "PASSENGER/OTHER"
+                    
+                    return Processed
+            except Exception, e:
+                # skip the rare occasion(s) when probabilities are zero
+                pass
         
-        if not Score:
-            # append JackHMMER probabilities/conservation
-            dbCursor.execute("select a.*, b.accession, b.description from PROBABILITIES a, LIBRARY b where a.id=b.id and a.id='" + str(SeqRecord['id']) + "' and a.position='" + substitution[1:-1] + "'")
-            ConRecord = dbCursor.fetchone()
-            
-            if ConRecord:
-                # append as a possible prediction
-                Facade.append(ConRecord)
-            
-            # fetch prediction(s) ...
-            (Score, Phenotypes) = fetch_prediction(Facade, substitution)
+        # no domain-based prediction, use a non-domain-based/sequence conservation prediction
+        dbCursor.execute("select a.*, b.*  from PROBABILITIES a, LIBRARY b where a.id=b.id and a.id='" + str(Sequence['id']) + "' and a.position='" + Substitution[1:-1] + "'")
+        Facade = dbCursor.fetchone()
         
-    # write our prediction
-    if not Score:
-        # no pathogenicity weights/prediction score
-        Predictions.write(
-            "\t".join([ str(idx), dbSNP, protein, substitution, "", "", "", "No Prediction Available" ]) + "\n"
-        ); return False
-    
-    if options.weights.upper() in [ "UNWEIGHTED", "INHERITED" ]:
-        # "Inherited Disease" predictions ...
-        Tag     = "TOLERATED"
-        if float(Score) < options.threshold:
-            Tag = "DAMAGING"
-    else:
-        # "Cancer-Associated" predictions ...
-        Tag     = "PASSENGER/OTHER"
-        if float(Score) < options.threshold:
-            Tag = "CANCER"
-    
-    
-    Predictions.write(
-        "\t".join([ str(idx), dbSNP, protein, substitution, Tag, Score, "|".join([ x['description'] for x in Phenotypes ]), "" ]) + "\n"
-    ); return True
-            
+        if Facade:
+            try:
+                dbCursor.execute("select * from WEIGHTS where id='" + Facade['id'] + "' and type='" + Weights + "'")
+                w = \
+                    dbCursor.fetchone()
+                
+                if w:
+                    Processed['HMM']         = Facade['id']
+                    Processed['Description'] = Facade['description']
+                    Processed['Position']    = Facade['position']
+                    Processed['W']           = Facade[Substitution[0]]
+                    Processed['M']           = Facade[Substitution[-1]]
+                    Processed['D']           = w['disease'] + 1.0
+                    Processed['O']           = w['other'] + 1.0
+                    
+                    Processed['Score']       = "%.2f" % math.log(((1.0 - Processed['W']) * Processed['O']) / ((1.0 - Processed['M']) * Processed['D']), 2)
+
+                    Processed['Prediction']  = ""                
+                    if Cutoff:
+                        if Weights == "INHERITED":
+                            if float(Processed['Score']) <= Cutoff: Processed['Prediction'] = "DAMAGING"
+                            if float(Processed['Score']) >  Cutoff: Processed['Prediction'] = "TOLERATED"
+                        
+                        if Weights == "CANCER":
+                            if float(Processed['Score']) <= Cutoff: Processed['Prediction'] = "CANCER"
+                            if float(Processed['Score']) >  Cutoff: Processed['Prediction'] = "PASSENGER/OTHER"
+                    
+                    return Processed
+            except Exception, e:
+                # skip the rare occasion(s) when probabilities are zero
+                raise        
+
+    return None
+
+
+
 #
 if __name__ == '__main__':
-    
-    #
-    # OPTION PARSER
     #
     
-    parser = OptionParser()
-    parser.add_option(
-                      "-i",
-                      dest    = "input",
-                      help    = "process mutation data from <INPUT>", 
-                      metavar = "<INPUT>",
-                      default = None
-                      )
-    parser.add_option(
-                      "-o",
-                      dest    = "output",
-                      help    = "write predictions/phenotype-associations to <OUTPUT>", 
-                      metavar = "<OUTPUT>",
-                      default = None
-                      )
-    parser.add_option(
-                      "-w",
-                      dest    = "weights",
-                      help    = "return weighted predictions using pathogenicity weights <WEIGHTS>", 
-                      metavar = "<WEIGHTS>",
-                      default = "INHERITED"
-                      )
-    parser.add_option(
-                      "-t",
-                      dest    = "threshold",
-                      help    = "return predictions using <THRESHOLD> as a prediction threshold", 
-                      metavar = "<THRESHOLD>",
-                      default = None
-                      )
-    parser.add_option(
-                      "-p",
-                      dest    = "phenotypes",
-                      help    = "append domain-phenotype associations for mutations using phenotype ontology <PHENO>", 
-                      metavar = "<PHENO>",
-                      default = ""
-                      )
-
-    (options, args) = parser.parse_args()
-    
-    #
-    # PARSE/AUTHENTICATE PROGRAM PARAMETERS
-    #
-    
-    if not options.input:
-        parser.error("Warning: No Input File Specified ")
-        
-    if not options.output:
-        parser.error("Warning: No Output File Specified ")
-        
-    if not options.weights:
-        parser.error("Warning: No Pathogenicity Weights Specified ")
-
-    if not options.weights.upper() in [ "UNWEIGHTED", "INHERITED", "CANCER" ]:
-        parser.error("Warning: Invalid Pathogenicity Weights ")
-        
-    if options.threshold:
-        try:
-            options.threshold = float(options.threshold)
-        except:
-            pass
-    else:
-        if options.weights.upper() == "UNWEIGHTED": options.threshold = -3.00
-        if options.weights.upper() == "INHERITED":  options.threshold = -1.50
-        if options.weights.upper() == "CANCER":     options.threshold = -0.75
-    
-    #
-    # INITIALIZE DATABASE CONNECTION/CURSOR
-    #
-    
-    Config = ConfigParser.ConfigParser()
+    Config   = ConfigParser.ConfigParser()
     Config.read("./config.ini")
         
-    dbCursor = \
-            MySQLdb.connect(
-                host     = str(Config.get("DATABASE", "HOST")),
-                port     = int(Config.get("DATABASE", "PORT")),
-                user     = str(Config.get("DATABASE", "USER")),
-                passwd   = str(Config.get("DATABASE", "PASSWD")),
-                db       = str(Config.get("DATABASE", "DB")),
-                compress = 1
-            ).cursor(MySQLdb.cursors.DictCursor)
+    dbCursor = MySQLdb.connect(
+                   host     = str(Config.get("DATABASE", "HOST")),
+                   port     = int(Config.get("DATABASE", "PORT")),
+                   user     = str(Config.get("DATABASE", "USER")),
+                   passwd   = str(Config.get("DATABASE", "PASSWD")),
+                   db       = str(Config.get("DATABASE", "DB")),
+                   compress = 1
+               ).cursor(MySQLdb.cursors.DictCursor)
+           
+    # parse program argument(s)
+    parser = argparse.ArgumentParser(
+                                     description = 'Functional Analysis through Hidden Markov Models',
+                                     add_help    = False
+                                    )
+    parser.add_argument(
+                        "-h",
+                        "--help",
+                        action = "help",
+                        help   = argparse.SUPPRESS
+                       )
     
-    #
-    # PROCESS MUTATION(S)
-    #
+    group = \
+        parser.add_argument_group("Required")
+    group.add_argument(
+                       'fi',
+                       metavar = '<F1>', 
+                       type    = argparse.FileType("r"),
+                       help    = 'a file containing the mutation data to process'
+                      )
+    group.add_argument(
+                       'fo',
+                       metavar = '<F2>',
+                       type    = argparse.FileType("w"),
+                       help    = 'where predictions/phenotype-associations will be written'
+                      )
     
-    Predictions = open("/tmp/" + os.path.basename(os.path.splitext(options.input)[0]) + ".tmp", "w")
-    Predictions.write("\t".join([ "#", 
-                                  "dbSNP ID",
-                                  "Protein ID",
-                                  "Substitution",
-                                  "Prediction",
-                                  "Score",
-                                  "Domain-Phenotype Association",
-                                  "Warning"
-                                ]) + "\n")
+    group = \
+        parser.add_argument_group("Options")
+    group.add_argument(
+                       '-w',
+                       dest    = 'weights',
+                       metavar = "<S>",
+                       default = "INHERITED",
+                       help    = "use pathogenicity weights <S> when returning predictions"
+                      )
+    group.add_argument(
+                       '-t',
+                       dest    = 'threshold',
+                       metavar = "<N>",
+                       default = None,
+                       type    = float,
+                       help    = "use prediction threshold <N> when returning predictions"
+                      )
+    group.add_argument(
+                       '-p',
+                       dest    = 'phenotypes',
+                       metavar = "<S>",
+                       default = "",
+                       help    = "use phenotype ontology <S> when returning domain-phenotype associations"
+                      ); Arg = parser.parse_args()
     
-    idx = 0
-    for record in open(options.input, "r"):
+    if Arg.weights:
+        # authenticate prediction weights
+        dbCursor.execute("select distinct type from WEIGHTS")
+        
+        if not Arg.weights.upper() in [ x['type'] for x in dbCursor.fetchall() ] + [ "UNWEIGHTED" ]: 
+            parser.error("argument -w: invalid option: '{0}'".format(Arg.weights))
+        
+        if Arg.threshold == None:
+            # initialize predcition threshold
+            if Arg.weights.upper() == "UNWEIGHTED": Arg.threshold = -3.00
+            if Arg.weights.upper() == "INHERITED":  Arg.threshold = -1.50
+            if Arg.weights.upper() == "CANCER":     Arg.threshold = -0.75
+    
+    if Arg.phenotypes:
+        # authenticate prediction phenotype
+        dbCursor.execute("select distinct type from PHENOTYPES")
+        
+        if not Arg.phenotypes.upper() in [ x['type'] for x in dbCursor.fetchall() ]:
+            parser.error("argument -p: invalid option: '{0}'".format(Arg.phenotypes))
+
+    
+    ##
+
+
+    Arg.fo.write("\t".join([ "#", 
+                             "dbSNP ID",
+                             "Protein ID",
+                             "Substitution",
+                             "Prediction",
+                             "Score",
+                             "Domain-Phenotype Association",
+                             "Warning",
+                             "HMM ID",
+                             "HMM Description",
+                             "HMM Pos.",
+                             "HMM Prob. W.",
+                             "HMM Prob. M.",
+                             "HMM Weights D.",
+                             "HMM Weights O."
+                           ]) + "\n")
+    
+    idx = 1
+    for record in Arg.fi:
+        record = record.strip()
+        
         if record and not record.startswith("#"):
-            record    = record.strip()
-            
             try:
-                # dbSNP record ...
                 if re.compile("^rs\d+$", re.IGNORECASE).match(record):
-                    # ... fetch protein consequence(s)
                     dbCursor.execute("select distinct * from VARIANTS where id='" + record + "'")
                     dbRecords = dbCursor.fetchall()
                     
                     if not dbRecords:
-                        # no dbSNP mapping
-                        idx += 1
+                        Arg.fo.write(
+                            "\t".join([ str(idx),
+                                        record,
+                                        "",
+                                        "",
+                                        "",
+                                        "",
+                                        "",
+                                        "No dbSNP Mapping(s)",
+                                        "",
+                                        "",
+                                        "",
+                                        "",
+                                        "",
+                                        "",
+                                        ""
+                                      ]) + "\n"
+                        ); idx += 1; continue
                         
-                        Predictions.write(
-                            "\t".join([ str(idx), record, "", "", "", "", "", "No dbSNP Mapping(s) For Record" ]) + "\n"
-                        ); continue
-                    
-                    # process dbSNP/protein consequence(s) ...
                     for x in dbRecords:
-                        idx += 1
+                        dbSNP        = x['id']
+                        Protein      = x['protein']
+                        Substitution = x['substitution']
                         
-                        process_record(x['id'], x['protein'], x['substitution'])
+                        Prediction = \
+                            Process(Protein, Substitution, Weights=Arg.weights.upper(), Cutoff=Arg.threshold, Phenotype=Arg.phenotypes.upper())
+
+                        if not Prediction:
+                            Arg.fo.write(
+                                "\t".join([ str(idx),
+                                            dbSNP,
+                                            Protein,
+                                            Substitution,
+                                            "",
+                                            "",
+                                            "",
+                                            "No Prediction Available",
+                                            "",
+                                            "",
+                                            "",
+                                            "",
+                                            "",
+                                            "",
+                                            ""
+                                          ]) + "\n"
+                            ); idx += 1; continue
+                        Arg.fo.write(
+                            "\t".join([ str(idx),
+                                        dbSNP,
+                                        Protein,
+                                        Substitution,
+                                        str(Prediction['Prediction']),
+                                        str(Prediction['Score']),
+                                        str(Prediction['Phenotype']),
+                                        str(Prediction['Warning']),
+                                        str(Prediction['HMM']),
+                                        str(Prediction['Description']),
+                                        str(Prediction['Position']),
+                                        str(Prediction['W']),
+                                        str(Prediction['M']),
+                                        str(Prediction['D']),
+                                        str(Prediction['O']) 
+                                      ]) + "\n"
+                        ); idx += 1; continue
                 else:
-                    # parse protein/substitution(s) ...
+                    dbSNP         = ""
                     Protein       = record.upper().split()[0]
-                    Substitutions = [ x.strip() for x in record.upper().split()[1].split(",") ]
-                        
-                    for x in Substitutions:
-                        idx += 1
-                        
-                        if x:
-                            process_record("-", Protein, x)
-            #
+
+                    for Substitution in [ x.strip() for x in record.upper().split()[1].split(",") ]:
+                        Prediction = \
+                            Process(Protein, Substitution, Weights=Arg.weights.upper(), Cutoff=Arg.threshold, Phenotype=Arg.phenotypes.upper())
+
+                        if not Prediction:
+                            Arg.fo.write(
+                                "\t".join([ str(idx),
+                                            dbSNP,
+                                            Protein,
+                                            Substitution,
+                                            "",
+                                            "",
+                                            "",
+                                            "No Prediction Available",
+                                            "",
+                                            "",
+                                            "",
+                                            "",
+                                            "",
+                                            "",
+                                            ""
+                                          ]) + "\n"
+                            ); idx += 1; continue
+                        Arg.fo.write(
+                            "\t".join([ str(idx),
+                                        dbSNP,
+                                        Protein,
+                                        Substitution,
+                                        str(Prediction['Prediction']),
+                                        str(Prediction['Score']),
+                                        str(Prediction['Phenotype']),
+                                        str(Prediction['Warning']),
+                                        str(Prediction['HMM']),
+                                        str(Prediction['Description']),
+                                        str(Prediction['Position']),
+                                        str(Prediction['W']),
+                                        str(Prediction['M']),
+                                        str(Prediction['D']),
+                                        str(Prediction['O']) 
+                                      ]) + "\n"
+                        ); idx += 1; continue
             except Exception, e:
-                idx += 1
-                
-                Predictions.write(
-                    "\t".join([ str(idx), "", "", "", "", "", "", "An Error Occured While Parsing The Record: " + record ]) + "\n"
-                )
-            #
-        #
-    #
-    
-    Predictions.close()
-    
-    # move predictions to the requested location
-    os.system("mv /tmp/" + os.path.basename(os.path.splitext(options.input)[0]) + ".tmp " + options.output)
+                Arg.fo.write(
+                    "\t".join([ str(idx),
+                                "",
+                                "",
+                                "",
+                                "",
+                                "",
+                                "",
+                                "An Error Occured While Processing The Record: " + record,
+                                "",
+                                "",
+                                "",
+                                "",
+                                "",
+                                ""
+                              ]) + "\n"
+                ); idx += 1
+

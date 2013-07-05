@@ -1,9 +1,10 @@
 # Database Configuration
-*.ini
+config.ini
 
 # Server Submission(s)
 *.txt
 *.tab
 
-# Benchmarking
-benchmark/
+# Site Verification
+*1704*
+sitemap*

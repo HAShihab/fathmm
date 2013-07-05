@@ -19,11 +19,13 @@
         <meta http-equiv="expires" content="Tue, 01 Jan 1980 1:00:00 GMT" />
         <meta http-equiv="pragma" content="no-cache" />
         
+        <link rel="icon" type="image/png" href="./img/favicon.ico">
+        
         <!-- HTML5 "Upscaling" -->
         <!--[if lt IE 9]>
             <script src="http://html5shiv.googlecode.com/svn/trunk/html5.js"></script>
         <![endif]-->
-
+        
         <link href="./css/bootstrap.css" rel="stylesheet">
         <link href="./css/bootstrap-responsive.css" rel="stylesheet">
         <link href="./css/fathmm.css" rel="stylesheet" type="text/css">
@@ -58,20 +60,14 @@
                         <div class="nav-collapse collapse">
                             <ul class="nav">
                                 <li><a href="./index.html">Home</a></li>
+                                <li><a href="./about.html">About</a></li>
                                 <li><a href="https://github.com/HAShihab/fathmm">Download</a></li>
-                                <li class="dropdown">
-                                    <a href="#" class="dropdown-toggle" data-toggle="dropdown">New Submission <b class="caret"></b></a>
-                                    <ul class="dropdown-menu">
-                                        <li><a href="./inherited.html">Analyze dbSNP/Protein Variants</a></li>
-                                        <li><a href="./cancer.html">Analyze Cancer-Associated Variants</a></li>
-                                    </ul>
-                                </li>
                             </ul>
                             <form class="navbar-form pull-right" action="./cgi-bin/results.cgi" method="post" enctype="multipart/form-data">
                                 <input class="span3" type="text" id="session" name="session" placeholder="Enter Your Job/Session Identifier">
                                 <button type="submit" class="btn">Fetch Results</button>
                             </form>
-                        </div><!--/.nav-collapse -->
+                        </div>
                     </div>
                 </div>
             </div>
@@ -79,16 +75,14 @@
             
             
             <div class="hero-unit">
-                <h2>Functional Analysis through Hidden Markov Models (v2.2)</h2>
+                <h2>Functional Analysis through Hidden Markov Models (v2.3)</h2>
                 <br />
                 <p>
-                    A high-throughput web-server capable of predicting the functional, molecular and phenotypic consequences of 
+                    The Functional Analysis through Hidden Markov Models (fathmm) is a high-throughput web-server capable of predicting the functional, molecular and phenotypic consequences of 
                     protein missense variants using hidden Markov models (HMMs) representing the alignment of homologous sequences 
                     and conserved protein domains.
                 </p>
-                <p>
-                    <a href="#info" role="button" data-toggle="modal" class="btn btn-primary btn-large pull-right">Overview &raquo;</a>
-                </p>
+                
             </div>
             
             <div id="info" class="modal hide fade" tabindex="-1" role="dialog" aria-labelledby="head" aria-hidden="true">
@@ -117,28 +111,53 @@
                     <button class="btn" data-dismiss="modal" aria-hidden="true">Close</button>
                 </div>
             </div>
-            
-            
-            
+
             <div class="row">
-                <div class="span6">
-                    <div class="well well-large" style="height: 150px;">
-                        <h4>Analyze dbSNP/Protein Missense Variants</h4>
-                        <br />
-                        <p>Obtain instant predictions capable of discriminating between disease-causing mutations and neutral polymorphisms - including 
-                        predictions on the molecular and phenotypic consequences of protein missense variants.</p>
-                        <p><a href="./inherited.html" class="btn pull-right">go &raquo;</a></p>
+                <a href="./inherited.html" style="text-decoration: none; color: #555555;">
+                    <div class="span6">
+                        <div class="well well-large">
+                            <center><h4>Analyze Protein Missense Variants</h4></center>
+                            <br />
+                            <p>
+                                Use this option to return predictions capable of discriminating between <b>disease-causing mutations and neutral polymorphisms</b>. In addition,
+                                predictions on the molecular and phenotypic consequences of protein missense variants are also returned.
+                            </p>
+                        </div>
                     </div>
-                </div>
-                <div class="span6">
-                    <!--<div class="well well-large" style="height: 150px; background-image:url('./img/new.png'); background-repeat:no-repeat; background-position:top right; ">-->
-                    <div class="well well-large" style="height: 150px;">
-                        <h4>Analyze Cancer-Associated Variants</h4>
-                        <br />
-                        <p>Obtain instant predictions capable of distinguishing between cancer-promoting/driver mutations, passenger mutations and other germline polymorphisms.</p>
-                        <p><a href="./cancer.html" class="btn pull-right">go &raquo;</a></p>
+                </a>
+                <a href="./cancer.html" style="text-decoration: none; color: #555555;">
+                    <div class="span6">
+                        <div class="well well-large">
+                            <center><h4>Analyze Cancer-Associated Variants</h4></center>
+                            <br />
+                            <p>
+                                Use this option to return predictions capable of distinguishing between <b>cancer-promoting/driver mutations, passenger mutations and 
+                                other germline polymorphisms</b>.
+                                <br />
+                                <br />
+<!--
+                                <br />
+-->
+                            </p>
+                        </div>
                     </div>
-                </div>
+                </a>
+<!--
+                <a href="./disease.html" style="text-decoration: none; color: #555555;">
+                    <div class="span4">
+                        <div class="well well-large" style="background-image:url('./img/new.png'); background-repeat:no-repeat; background-position:bottom right; ">
+                            <center><h4>Rank nsSNPs According to Specific Disease Concepts</h4></center>
+                            <br />
+                            <p>
+                                Use this option to return a customized list of ranked variants that are <b>potentially functionally relevant to to your disease of interest</b> (disease-specific).
+                                <br />
+                                <br />
+                                <br />
+                            </p>
+                        </div>
+                    </div>
+                </a>
+-->
             </div>
             
             <hr>

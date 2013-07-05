@@ -19,6 +19,8 @@
         <meta http-equiv="expires" content="Tue, 01 Jan 1980 1:00:00 GMT" />
         <meta http-equiv="pragma" content="no-cache" />
         
+        <link rel="icon" type="image/png" href="./img/favicon.ico">
+        
         <!-- HTML5 "Upscaling" -->
         <!--[if lt IE 9]>
             <script src="http://html5shiv.googlecode.com/svn/trunk/html5.js"></script>
@@ -46,6 +48,7 @@
 
     <body>
         <a id="top"></a>
+        
         <div class="container">
             <div class="navbar navbar-fixed-top">
                 <div class="navbar-inner">
@@ -59,14 +62,8 @@
                         <div class="nav-collapse collapse">
                             <ul class="nav">
                                 <li><a href="./index.html">Home</a></li>
+                                <li><a href="./about.html">About</a></li>
                                 <li><a href="https://github.com/HAShihab/fathmm">Download</a></li>
-                                <li class="dropdown">
-                                    <a href="#" class="dropdown-toggle" data-toggle="dropdown">New Submission <b class="caret"></b></a>
-                                    <ul class="dropdown-menu">
-                                        <li><a href="./inherited.html">Analyze dbSNP/Protein Variants</a></li>
-                                        <li><a href="./cancer.html">Analyze Cancer-Associated Variants</a></li>
-                                    </ul>
-                                </li>
                             </ul>
                             <form class="navbar-form pull-right" action="./cgi-bin/results.cgi" method="post" enctype="multipart/form-data">
                                 <input class="span3" type="text" id="session" name="session" placeholder="Enter Your Job/Session Identifier">
@@ -78,12 +75,7 @@
             </div>
             
             <div class="hero-unit">
-                <h2>Analyze dbSNP/Protein Missense Variants</h2>
-                <br />
-                <p>
-                    Obtain instant predictions for the functional, molecular and phenotypic consequences of protein missense 
-                    variants.
-                </p>
+                <h2>Analyze Protein Missense Variants</h2>
             </div>
             
             <ul class="nav nav-tabs" id="myTab">
@@ -102,10 +94,8 @@
                 <div class="tab-pane active" id="new">
                     <div class="row">
                         <div class="span12">
-                            <form class="form-horizontal" id="myForm" name="myForm" action="./cgi-bin/results.cgi" method="post" enctype="multipart/form-data">
+                            <form class="form-horizontal" id="myForm" name="myForm" action="./cgi-bin/submit.cgi" method="post" enctype="multipart/form-data">
                                 <legend><h3>Enter Your Mutations:</h3></legend>
-                                
-                                <input type="hidden" name="threshold" id="threshold" value="">
                                 
                                 <div class="row-fluid">
                                     <div class="span12">
@@ -150,6 +140,7 @@
                                                                                 <label class="control-label" for="phenotypes">Phenotypic Associations</label>
                                                                                 <div class="controls">
                                                                                     <select id="phenotypes" name="phenotypes" class="span11">
+                                                                                        <option value="">None</option>
                                                                                         <option value="DO" selected>Disease Ontology</option>
                                                                                         <option value="GO">Gene Ontology</option>
                                                                                         <option value="HP">Human Phenotype Ontology</option>
@@ -201,6 +192,7 @@
                             <ul class="nav nav-list navex">
                                 <li><a href="#overview"><i class="icon-chevron-right"></i> Overview</a></li>
                                 <li><a href="#format"><i class="icon-chevron-right"></i> Input Format</a></li>
+                                <li><a href="#format_batch"><i class="icon-chevron-right"></i> Batch Submission</a></li>
                                 <li><a href="#algorithm"><i class="icon-chevron-right"></i> Prediction Algorithm</a></li>
                                 <li><a href="#phenotype"><i class="icon-chevron-right"></i> Phenotypic Associations</a></li>
                                 <li><a href="#vcf"><i class="icon-chevron-right"></i> Annotating VCF's</a></li>
@@ -211,82 +203,97 @@
                                 <h1>Overview:</h1>
                                 <br />
                                 <p>
-                                    Our algorithm is capable of predicting the functional effects of protein missense mutations by combining
-                                    sequence conservation within hidden Markov models (HMMs), representing the alignment of homologous sequences and conserved 
-                                    protein domains, with "pathogenicity weights", representing the overall tolerance of the corresponding model to mutations.
+                                    The Functional Analysis through Hidden Markov Models (fathmm) software and server is is capable of <b>predicting the functional 
+                                    effects of protein missense mutations</b> by combining sequence conservation within hidden Markov models (HMMs), representing the 
+                                    alignment of homologous sequences and conserved protein domains, with "pathogenicity weights", representing the overall tolerance
+                                    of the corresponding model to mutations.
                                     <br /><br />
                                     For more information, please refer to the following publication:
                                     <br /><br />
                                     Shihab HA, Gough J, Cooper DN, Stenson PD, Barker GLA, Edwards KJ, Day INM, Gaunt, TR. (2013). Predicting the Functional, Molecular and Phenotypic
-                                    Consequences of Amino Acid Substitutions using Hidden Markov Models. <i>Hum. Mutat.</i>, <b>34</b>, 57-65
+                                    Consequences of Amino Acid Substitutions using Hidden Markov Models. <i>Hum. Mutat.</i>, <b>34</b>:57-65
                                     <a href="http://www.ncbi.nlm.nih.gov/pubmed/23033316"><img src="./img/pubmed.png" alt="fathmm Paper"></a>
                                 </p>
-                                <a href='./inherited.html#top'>Back to top ...</a>
+                                <br />
+                                <a href='./inherited.html#top'>Back to Top ...</a>
                             </section>
                             <br />
+                            
                             <section id="format">
                                 <h1>Input Format:</h1>
                                 <br />
                                 <p>
-                                Our server accepts one of the following formats (see <a href="./cancer.html#vcf">here</a> for annotating VCF files):
+                                Our software accepts one of the following formats (see <a href="./about.html#vcf">here</a> for annotating VCF files):
                                 
                                 <br /><br />
                                 <ul>
                                     <li>
                                         <code>&lt;protein&gt; &lt;substitution&gt;</code>
                                     </li>
+                                    <li>
+                                        <code>dbSNP rs identifiers</code>
+                                    </li>
                                 </ul>
                                 <br />
-                                Where <code>&lt;protein&gt;</code> is the protein identifier and <code>&lt;substitution&gt;</code> is the amino acid substitution in the conventional one 
-                                letter format.  At present, our server accepts SwissProt/TrEMBL and Ensembl protein identifiers - multiple amino acid substitutions 
-                                can be entered on a single line and should be separated by a comma, e.g:
+                                In the above, <code>&lt;protein&gt;</code> is the protein identifier and <code>&lt;substitution&gt;</code> is the amino acid substitution in the conventional one 
+                                letter format.  At present, <b>our server accepts SwissProt/TrEMBL, RefSeq and Ensembl protein identifiers</b>, e.g.:
+                                <br /><br />
+<pre>
+P43026 L441P
+</pre>
+                                or:
+                                <br /><br />  
+<pre>
+rs137854462
+</pre>
+                                </p>
+                                <br />
+                                <a href='./inherited.html#top'>Back to Top ...</a>
+                            </section>
+                            <br />
+
+                            <section id="format_batch">
+                                <h1>Batch Submission:</h1>
+                                <br />
+                                <p>
+                                <b>
+                                It is possible to submit multiple amino acid substitutions as a 'Batch Submission' via our server</b>.  Here, all amino acid substitutions for a protein can be 
+                                entered on a single line and should be separated by a comma, e.g:
                                 <br /><br />
 <pre>
 P43026 L441P
 ENSP00000325527 N548I,E1073K,C2307S 
 </pre>
                                 <br />
-                                <ul>
-                                    <li>
-                                        <code>dbSNP rs identifiers</code>
-                                    </li>
-                                </ul>
-                                <br />
-                                At present, our server accepts dbSNP v.137 annotations (we are working towards incorporating other versions of dbSNP into our database) - multiple dbSNP 
-                                identifiers should be entered on separate lines, e.g.:
-                                <br /><br />  
-<pre>
-rs137854462
-rs28936683
-rs121908258
-rs17882252
-</pre>
-
+                                <b>Note: this option is not available when analysing dbSNP rs identifiers</b>.
                                 </p>
-                                <a href='./inherited.html#top'>Back to top ...</a>
+                                <br />
+                                <a href='./inherited.html#top'>Back to Top ...</a>
                             </section>
                             <br />
+
                             <section id="algorithm">
                                 <h1>Prediction Algorithm:</h1>
                                 <br />
                                 <p>
-                                As described in our paper, our software is comprised of two algorithms: one sequence/conservation based (Unweighted) and the other 
-                                amalgamates our Unweighted algorithm with pathogenicity weights (Weighted).  In short, our Weighted algorithm is capable of adjusting 
+                                As described in our paper, <b>our software is comprised of two algorithms</b>: <b>one sequence/conservation based (Unweighted) and the other 
+                                combines our Unweighted algorithm with pathogenicity weights (Weighted)</b>.  In short, our Weighted algorithm is capable of adjusting 
                                 our conservation-based predictions to account for the tolerance of related sequences to mutations.  For example, mutations falling within 
                                 diverse regions of the Cellular Tumor Antigen P53 can be up-weighted according to the critical role the protein plays in cell regulation.  
                                 In contrast, mutations falling within conserved regions of the MHC Antigen-Regognition Domain can be down-weighted according the 
                                 hypervariable nature of the domain.
                                 </p>
-                                <a href='./inherited.html#top'>Back to top ...</a>
+                                <br />
+                                <a href='./inherited.html#top'>Back to Top ...</a>
                             </section>
-                            
                             <br />
+                            
                             <section id="phenotype">
                                 <h1>Phenotype Associations:</h1>
                                 <br />
                                 <p>
-                                Our software not only predicts the potentially deleterious nature of protein variants but it is also capable of annotating
-                                the molecular and phenotypic consequences of these mutations via domain-centric ontologies (<a href="http://supfam.org/SUPERFAMILY/dcGO/"><b>dcGO</b></a>). 
+                                <b>Our software not only predicts the potentially deleterious nature of protein variants but it is also capable of annotating
+                                the molecular and phenotypic consequences of these mutations</b> via several domain-centric ontologies (<a href="http://supfam.org/SUPERFAMILY/dcGO/"><b>dcGO</b></a>). 
                                 Here, the molecular consequences of mutations are statistically inferred by mapping <a href="http://supfam.cs.bris.ac.uk/SUPERFAMILY/"><b>SUPERFAMILY</b></a>
                                 domains onto the Gene Ontology, the Human Phenotype Ontology and the Mammalian Phenotype Ontology (and more).
                                 <br /><br />
@@ -296,10 +303,11 @@ rs17882252
                                 <br /><br />
                                 Gough J, Karplus K, Hughey R, Chothia C. (2001). Assignment of homology to genome sequences using a library of hidden Markov models that represent all proteins of known structure. <i>J. Mol. Biol.</i>, <b>313</b>, 903-919.
                                 </p> 
-                                <a href='./inherited.html#top'>Back to top ...</a>
+                                <br />
+                                <a href='./inherited.html#top'>Back to Top ...</a>
                             </section>
-                            
                             <br />
+                            
                             <section id="vcf">
                                 <h1>VCF Annotation:</h1>
                                 <br />
@@ -310,10 +318,11 @@ rs17882252
                                 consequences which can then be used as input into our server/software.  
                                 <br /><br />
                                 Additional help on using our script is available by typing the following command:
-                                <pre>python parseVCF.py --help</pre>
-                                              
+                                <br /><br />
+                                <pre>python parseVCF.py --help</pre>         
                                 </p> 
-                                <a href='./inherited.html#top'>Back to top ...</a>
+                                <br />
+                                <a href='./inherited.html#top'>Back to Top ...</a>
                             </section>
                             
                         </div>
