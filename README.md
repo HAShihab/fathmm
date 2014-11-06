@@ -13,8 +13,7 @@ You will need the following packages installed on your system:
 
 ## Setup:
 
-* Our pre-computed database, including instructions on how to create/upload the 
-database, can be found at ftp://supfam2.cs.bris.ac.uk/FATHMM/database
+* Our pre-computed database can be found at http://fathmm.biocompute.org.uk/database/fathmm.v2.3.SQL.gz (instructions on how to create/upload the database can be found at http://fathmm.biocompute.org.uk/database/INSTALL)
 * Create a configuration file named "config.ini" and enter the following (substituting 
 the required information with your MySQL credentials):
 
